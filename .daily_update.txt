@@ -1,21 +1,23 @@
-Daily OS update — 2026-02-05 (14:00 KST)
+Daily OS project update — 2026-02-06 (14:00 KST)
 
-Repo: https://github.com/surfsurfmasurf/os-2week
+Repo: /home/nolank/projects/os-2week
+Remote: https://github.com/surfsurfmasurf/os-2week
 
-Commits today: 1
-- 2d15a28 Add minimal x86 boot sector + Makefile
+Commits (since last update): 1
+- ba244d3 Add stage2 loader + build raw disk image
 
 What changed
-- Added a 512-byte x86 boot sector (src/boot.asm) that prints "os-2week: boot ok" via BIOS INT 10h and halts.
-- Added Makefile + .gitignore; updated README with build/run commands.
-- Logged the day in daily/2026-02-05.md.
+- Stage-1 boot sector now loads a stage-2 payload from disk sector 2 (INT 13h) and jumps to 0x0000:0x1000.
+- Added stage-2 program that prints a message + halts.
+- Makefile now builds build/os.img (boot sector + stage2 padded to 512B) and runs it via QEMU.
+- Added daily log for 2026-02-06 and refreshed README.
 
 Notes
-- Build tooling isn’t installed on this host yet (make currently fails with: nasm: No such file or directory). QEMU also not present here.
+- Local build still fails here if nasm/qemu aren't installed ("nasm: No such file or directory").
 
-What’s next
-- Decide stage-2 loader vs. flat kernel approach.
-- Add documented/reproducible toolchain setup (apt packages or Docker) so builds can run anywhere.
+What's next (suggested)
+- Add keyboard input (INT 16h) + minimal prompt/echo loop in stage2.
+- Grow stage2 beyond 1 sector (stage1 reads multiple sectors; consider LBA or simple contiguous loader).
 
 Push status
 - Pushed to origin/main successfully.
