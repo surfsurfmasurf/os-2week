@@ -1,0 +1,21 @@
+Daily OS update — 2026-02-05 (14:00 KST)
+
+Repo: https://github.com/surfsurfmasurf/os-2week
+
+Commits today: 1
+- 2d15a28 Add minimal x86 boot sector + Makefile
+
+What changed
+- Added a 512-byte x86 boot sector (src/boot.asm) that prints "os-2week: boot ok" via BIOS INT 10h and halts.
+- Added Makefile + .gitignore; updated README with build/run commands.
+- Logged the day in daily/2026-02-05.md.
+
+Notes
+- Build tooling isn’t installed on this host yet (make currently fails with: nasm: No such file or directory). QEMU also not present here.
+
+What’s next
+- Decide stage-2 loader vs. flat kernel approach.
+- Add documented/reproducible toolchain setup (apt packages or Docker) so builds can run anywhere.
+
+Push status
+- Pushed to origin/main successfully.

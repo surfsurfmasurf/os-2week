@@ -12,8 +12,12 @@ Requirements:
 - `qemu-system-i386` (optional, for `make run`)
 
 Commands:
-- `make` — build a minimal boot sector (`build/boot.bin`)
+- `make` — build a tiny raw disk image (`build/os.img`)
 - `make run` — boot it in QEMU
+
+## What it boots today
+- Stage 1 (`src/boot.asm`): 512-byte boot sector that prints a message, loads stage2 from disk sector 2, then jumps.
+- Stage 2 (`src/stage2.asm`): prints a message and halts.
 
 ## Daily Updates
 - `daily/YYYY-MM-DD.md` — daily log
