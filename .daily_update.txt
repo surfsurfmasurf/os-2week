@@ -1,23 +1,5 @@
-Daily OS project update — 2026-02-06 (14:00 KST)
-
-Repo: /home/nolank/projects/os-2week
-Remote: https://github.com/surfsurfmasurf/os-2week
-
-Commits (since last update): 1
-- ba244d3 Add stage2 loader + build raw disk image
-
-What changed
-- Stage-1 boot sector now loads a stage-2 payload from disk sector 2 (INT 13h) and jumps to 0x0000:0x1000.
-- Added stage-2 program that prints a message + halts.
-- Makefile now builds build/os.img (boot sector + stage2 padded to 512B) and runs it via QEMU.
-- Added daily log for 2026-02-06 and refreshed README.
-
-Notes
-- Local build still fails here if nasm/qemu aren't installed ("nasm: No such file or directory").
-
-What's next (suggested)
-- Add keyboard input (INT 16h) + minimal prompt/echo loop in stage2.
-- Grow stage2 beyond 1 sector (stage1 reads multiple sectors; consider LBA or simple contiguous loader).
-
-Push status
-- Pushed to origin/main successfully.
+Commit count: 1
+Hashes: 87bebe90e3860abe896ff24786fcfe761da66f45
+What changed: Added keyboard input wait in stage2.asm using INT 16h.
+What's next: Implement basic command shell.
+Push status: Pending
