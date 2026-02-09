@@ -1,5 +1,5 @@
 Commit count: 1
-Hashes: 87bebe90e3860abe896ff24786fcfe761da66f45
-What changed: Added keyboard input wait in stage2.asm using INT 16h.
-What's next: Implement basic command shell.
-Push status: Pending
+Hashes: 75980f73962592c4cbc8391e550269675890fcde
+What changed: Implemented a primitive shell loop in stage2.asm with character echo and basic commands ('r' for reboot, 'q' for halt).
+What's next: Buffer input strings and implement a real command parser.
+Push status: Success
