@@ -9,11 +9,34 @@ start:
   mov si, msg
   call print_string
 
-  call get_keystroke
-  mov si, msg_key
+shell:
+  mov si, prompt
   call print_string
 
+  call get_keystroke
+  
+  ; Echo back
+  mov ah, 0x0E
+  mov bh, 0x00
+  mov bl, 0x07
+  int 0x10
+
+  ; If 'r', reboot (classic MS-DOS style warm reboot via INT 19h)
+  cmp al, 'r'
+  je .reboot
+
+  ; If 'q', halt
+  cmp al, 'q'
+  je hang
+
+  jmp shell
+
+.reboot:
+  int 0x19
+
 hang:
+  mov si, msg_halt
+  call print_string
   cli
 .hlt:
   hlt
@@ -44,4 +67,5 @@ print_string:
   ret
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_key db "Key pressed. Halting.", 13, 10, 0
+prompt db "> ", 0
+msg_halt db 13, 10, "Halting system.", 13, 10, 0
