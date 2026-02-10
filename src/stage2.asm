@@ -21,14 +21,15 @@ shell:
   mov bl, 0x07
   int 0x10
 
-  ; If 'r', reboot (classic MS-DOS style warm reboot via INT 19h)
-  cmp al, 'r'
-  je .reboot
+  ; If 'v', version
+  cmp al, 'v'
+  je .version
 
-  ; If 'q', halt
-  cmp al, 'q'
-  je hang
+  jmp shell
 
+.version:
+  mov si, msg_ver
+  call print_string
   jmp shell
 
 .reboot:
@@ -67,5 +68,6 @@ print_string:
   ret
 
 msg db "os-2week: stage2 ok", 13, 10, 0
+msg_ver db 13, 10, "os-2week v0.1.0 (minimal)", 13, 10, 0
 prompt db "> ", 0
 msg_halt db 13, 10, "Halting system.", 13, 10, 0
