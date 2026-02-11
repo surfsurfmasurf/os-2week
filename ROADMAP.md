@@ -18,8 +18,8 @@ Build a demoable OS that boots, accepts keyboard commands, and manages simple sy
 ### Phase 2: Shell & User Interaction (Days 5-8) - 🚧 IN PROGRESS
 - [x] Day 5: Primitive shell - Keyboard IRQ + char echo.
 - [x] Day 6: Basic commands - `reboot` (via PS/2 controller) and `halt`.
-- [ ] Day 7: **Input Buffering** - Buffer keystrokes into strings.
-- [ ] Day 8: **Command Parser** - Multi-character command support (e.g., `help`, `clear`).
+- [x] Day 7: Input Buffering - Buffer keystrokes into strings.
+- [x] Day 8: Command Parser - Multi-character command support (e.g., `help`, `clear`).
 
 ### Phase 3: Kernel Foundations (Days 9-11)
 - [ ] Day 9: Interrupt Descriptor Table (IDT) - Proper exception handling.
