@@ -97,6 +97,11 @@ process_command:
   call strcmp
   jc .do_help
 
+  ; Command: 'echo'
+  mov di, cmd_echo
+  call strcmp_prefix
+  jc .do_echo
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -121,6 +126,14 @@ process_command:
   call print_string
   ret
 
+.do_echo:
+  ; Skip "echo " (5 chars)
+  add si, 5
+  call print_string
+  mov si, newline
+  call print_string
+  ret
+
 ; --- helpers ---
 
 ; strcmp: DS:SI vs DS:DI. Sets Carry Flag if match.
@@ -134,6 +147,31 @@ strcmp:
   jne .no_match
   test al, al     ; reached end of both?
   jz .match
+  inc si
+  inc di
+  jmp .loop
+.no_match:
+  pop di
+  pop si
+  clc
+  ret
+.match:
+  pop di
+  pop si
+  stc
+  ret
+
+; strcmp_prefix: DS:SI vs DS:DI. Sets Carry Flag if SI starts with DI.
+strcmp_prefix:
+  push si
+  push di
+.loop:
+  mov bl, [di]
+  test bl, bl     ; reached end of prefix?
+  jz .match
+  mov al, [si]
+  cmp al, bl
+  jne .no_match
   inc si
   inc di
   jmp .loop
@@ -173,8 +211,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 7: String Input & Command Parsing)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 8: Basic Command Arguments)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 prompt db "> ", 0
 newline db 13, 10, 0
@@ -184,6 +222,7 @@ cmd_ver db "ver", 0
 cmd_cls db "cls", 0
 cmd_reboot db "reboot", 0
 cmd_help db "help", 0
+cmd_echo db "echo ", 0
 
 ; Buffer
 input_buffer times 64 db 0
