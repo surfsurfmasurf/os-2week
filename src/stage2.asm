@@ -102,6 +102,11 @@ process_command:
   call strcmp_prefix
   jc .do_echo
 
+  ; Command: 'mmap'
+  mov di, cmd_mmap
+  call strcmp
+  jc .do_mmap
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -134,7 +139,72 @@ process_command:
   call print_string
   ret
 
+.do_mmap:
+  mov si, msg_mmap_header
+  call print_string
+
+  xor ebx, ebx          ; continuation value, must be 0 for first call
+  mov edx, 0x534D4150   ; 'SMAP'
+  
+.mmap_loop:
+  mov di, mmap_entry    ; ES:DI points to destination buffer
+  mov eax, 0xE820
+  mov ecx, 24           ; request 24 bytes
+  int 0x15
+
+  jc .mmap_done         ; error if carry set
+  cmp eax, 0x534D4150   ; check SMAP signature
+  jne .mmap_done
+
+  ; Display entry (Base Address: 64-bit, Length: 64-bit, Type: 32-bit)
+  ; For simplicity in 16-bit real mode, we'll just show the low 32 bits of Base and Length
+  
+  ; Base Low
+  mov eax, [mmap_entry]
+  call print_hex_32
+  mov si, space
+  call print_string
+
+  ; Length Low
+  mov eax, [mmap_entry + 8]
+  call print_hex_32
+  mov si, space
+  call print_string
+
+  ; Type
+  mov eax, [mmap_entry + 16]
+  call print_hex_32
+  mov si, newline
+  call print_string
+
+  test ebx, ebx         ; if ebx is 0, list is finished
+  jz .mmap_done
+  jmp .mmap_loop
+
+.mmap_done:
+  ret
+
 ; --- helpers ---
+
+; print_hex_32: prints EAX in hex
+print_hex_32:
+  pusha
+  mov cx, 8             ; 8 hex digits
+.loop:
+  rol eax, 4            ; rotate top nibble to bottom
+  push eax
+  and al, 0x0F          ; mask nibble
+  cmp al, 10
+  jl .digit
+  add al, 7             ; convert A-F
+.digit:
+  add al, '0'
+  mov ah, 0x0E
+  int 0x10
+  pop eax
+  loop .loop
+  popa
+  ret
 
 ; strcmp: DS:SI vs DS:DI. Sets Carry Flag if match.
 strcmp:
@@ -211,11 +281,13 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 8: Basic Command Arguments)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 9: Memory Map)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
+msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 prompt db "> ", 0
 newline db 13, 10, 0
+space db " ", 0
 
 ; Commands
 cmd_ver db "ver", 0
@@ -223,6 +295,8 @@ cmd_cls db "cls", 0
 cmd_reboot db "reboot", 0
 cmd_help db "help", 0
 cmd_echo db "echo ", 0
+cmd_mmap db "mmap", 0
 
 ; Buffer
 input_buffer times 64 db 0
+mmap_entry times 24 db 0
