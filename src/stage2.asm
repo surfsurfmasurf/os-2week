@@ -107,6 +107,11 @@ process_command:
   call strcmp
   jc .do_mmap
 
+  ; Command: 'cpu'
+  mov di, cmd_cpu
+  call strcmp
+  jc .do_cpu
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -182,6 +187,24 @@ process_command:
   jmp .mmap_loop
 
 .mmap_done:
+  ret
+
+.do_cpu:
+  mov eax, 0
+  cpuid
+  
+  ; Vendor ID is in EBX:EDX:ECX
+  mov [vendor_id], ebx
+  mov [vendor_id+4], edx
+  mov [vendor_id+8], ecx
+  mov byte [vendor_id+12], 0 ; Null terminate
+  
+  mov si, msg_cpu_vendor
+  call print_string
+  mov si, vendor_id
+  call print_string
+  mov si, newline
+  call print_string
   ret
 
 ; --- helpers ---
@@ -281,10 +304,11 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 9: Memory Map)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 10: CPUID)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
+msg_cpu_vendor db "CPU Vendor: ", 0
 prompt db "> ", 0
 newline db 13, 10, 0
 space db " ", 0
@@ -296,7 +320,9 @@ cmd_reboot db "reboot", 0
 cmd_help db "help", 0
 cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
+cmd_cpu db "cpu", 0
 
 ; Buffer
 input_buffer times 64 db 0
 mmap_entry times 24 db 0
+vendor_id times 13 db 0
