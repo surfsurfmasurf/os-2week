@@ -112,6 +112,11 @@ process_command:
   call strcmp
   jc .do_cpu
 
+  ; Command: 'uptime'
+  mov di, cmd_uptime
+  call strcmp
+  jc .do_uptime
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -207,7 +212,55 @@ process_command:
   call print_string
   ret
 
+.do_uptime:
+  ; Read BIOS timer tick (0040h:006Ch)
+  ; 18.2 ticks per second.
+  push es
+  mov ax, 0x0040
+  mov es, ax
+  mov eax, [es:0x006C]
+  pop es
+
+  ; Divide ticks by 18 to get approximate seconds
+  xor edx, edx
+  mov ecx, 18
+  div ecx ; EAX = seconds, EDX = remainder
+  
+  push eax ; save seconds
+  mov si, msg_uptime
+  call print_string
+  pop eax
+  call print_decimal_32
+  mov si, msg_seconds
+  call print_string
+  ret
+
 ; --- helpers ---
+
+; print_decimal_32: prints EAX in decimal
+print_decimal_32:
+  pusha
+  mov ecx, 10
+  xor bx, bx          ; digit counter
+
+.push_digits:
+  xor edx, edx
+  div ecx
+  push dx             ; remainder (digit)
+  inc bx
+  test eax, eax
+  jnz .push_digits
+
+.pop_digits:
+  pop dx
+  mov al, dl
+  mov ah, 0x0E
+  int 0x10
+  dec bx
+  jnz .pop_digits
+  
+  popa
+  ret
 
 ; print_hex_32: prints EAX in hex
 print_hex_32:
@@ -304,11 +357,13 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 10: CPUID)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 11: RTC/Timer)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
+msg_uptime db "Uptime: ", 0
+msg_seconds db " seconds", 13, 10, 0
 prompt db "> ", 0
 newline db 13, 10, 0
 space db " ", 0
@@ -321,6 +376,7 @@ cmd_help db "help", 0
 cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
 cmd_cpu db "cpu", 0
+cmd_uptime db "uptime", 0
 
 ; Buffer
 input_buffer times 64 db 0
