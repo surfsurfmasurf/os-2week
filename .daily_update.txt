@@ -1,5 +1,5 @@
-Commit count: 1
-Hashes: 4fad5d3f3b69667506d840539a9fb2652725d853
-What changed: Implemented 'echo' command with prefix-based argument parsing in Stage 2.
-What's next: Handle multiple spaces in arguments and start memory map exploration.
-Push status: Success.
+Commit Count: 1
+Last Hash: 55d55ba581b6afcb2d7c15604a08edc43a221d0e
+What Changed: Added 'uptime' command to shell; implemented decimal printing helper.
+What's Next: GDT and Protected Mode entry.
+Push Status: Pending...
