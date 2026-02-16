@@ -117,6 +117,11 @@ process_command:
   call strcmp
   jc .do_uptime
 
+  ; Command: 'time'
+  mov di, cmd_time
+  call strcmp
+  jc .do_time
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -124,6 +129,38 @@ process_command:
 
 .do_ver:
   mov si, msg_ver
+  call print_string
+  ret
+
+.do_time:
+  ; Read RTC time (HH:MM:SS)
+  ; Get Hours (04h)
+  mov al, 0x04
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  call print_decimal_2_digits
+  mov al, ':'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Get Minutes (02h)
+  mov al, 0x02
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  call print_decimal_2_digits
+  mov al, ':'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Get Seconds (00h)
+  mov al, 0x00
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  call print_decimal_2_digits
+  mov si, newline
   call print_string
   ret
 
@@ -233,6 +270,35 @@ process_command:
   call print_decimal_32
   mov si, msg_seconds
   call print_string
+  ret
+
+; --- helpers ---
+
+; bcd_to_bin: AL is BCD, returns binary in AL
+bcd_to_bin:
+  push bx
+  mov bl, al
+  and al, 0x0F      ; AL = low nibble
+  shr bl, 4         ; BL = high nibble
+  mov ah, 10
+  mul ah            ; AL = high * 10
+  add al, bl        ; AL = (high * 10) + low
+  pop bx
+  ret
+
+; print_decimal_2_digits: prints AL as 2-digit decimal (00-99)
+print_decimal_2_digits:
+  pusha
+  mov ah, 0
+  mov bl, 10
+  div bl            ; AL = quotient (tens), AH = remainder (ones)
+  add ax, 0x3030    ; convert both to ASCII
+  mov bl, ah        ; store ones in BL
+  mov ah, 0x0E
+  int 0x10          ; print tens
+  mov al, bl
+  int 0x10          ; print ones
+  popa
   ret
 
 ; --- helpers ---
@@ -358,7 +424,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.0 (Day 11: RTC/Timer)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
@@ -377,6 +443,7 @@ cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
 cmd_cpu db "cpu", 0
 cmd_uptime db "uptime", 0
+cmd_time db "time", 0
 
 ; Buffer
 input_buffer times 64 db 0
