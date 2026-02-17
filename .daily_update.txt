@@ -1,5 +1,5 @@
-Commit Count: 1
-Hashes: 77665e5
-What Changed: Implemented 'time' command in stage2.asm using RTC CMOS ports; added BCD conversion and 2-digit decimal printing helpers.
-What's Next: Transition to Protected Mode (GDT setup) and IDT.
-Push Status: Success (main -> main)
+Commit count: 1
+Hash: ea4c5d78454e972dbfa3c7d4a1bbfba7410acf4a
+Changes: Added date and color commands, updated print_string to support attributes.
+Next: Basic memory management or FS.
+Push status: Success
