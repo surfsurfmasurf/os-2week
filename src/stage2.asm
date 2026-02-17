@@ -122,6 +122,16 @@ process_command:
   call strcmp
   jc .do_time
 
+  ; Command: 'date'
+  mov di, cmd_date
+  call strcmp
+  jc .do_date
+
+  ; Command: 'color'
+  mov di, cmd_color
+  call strcmp_prefix
+  jc .do_color
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -161,6 +171,73 @@ process_command:
   call bcd_to_bin
   call print_decimal_2_digits
   mov si, newline
+  call print_string
+  ret
+
+.do_date:
+  ; Read RTC date (YY:MM:DD)
+  ; Get Year (09h)
+  mov al, 0x09
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  mov bl, al ; save YY
+  
+  ; Print '20' prefix
+  mov al, '2'
+  mov ah, 0x0E
+  int 0x10
+  mov al, '0'
+  int 0x10
+  
+  mov al, bl
+  call print_decimal_2_digits
+  mov al, '-'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Get Month (08h)
+  mov al, 0x08
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  call print_decimal_2_digits
+  mov al, '-'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Get Day of Month (07h)
+  mov al, 0x07
+  out 0x70, al
+  in al, 0x71
+  call bcd_to_bin
+  call print_decimal_2_digits
+  mov si, newline
+  call print_string
+  ret
+
+.do_color:
+  ; Simple color command: 'color X' where X is a hex digit (0-F)
+  ; Skip "color " (6 chars)
+  add si, 6
+  mov al, [si]
+  test al, al
+  jz .color_help
+
+  ; Convert hex char to value
+  call hex_to_bin
+  jc .color_help
+  
+  ; Set global text attribute (background 0, foreground AL)
+  mov [text_attr], al
+  
+  ; Optional: Refresh screen with new color or just let it apply to next prints
+  mov si, msg_color_set
+  call print_string
+  ret
+
+.color_help:
+  mov si, msg_color_help
   call print_string
   ret
 
@@ -273,6 +350,32 @@ process_command:
   ret
 
 ; --- helpers ---
+
+; hex_to_bin: AL is hex char, returns value in AL, sets Carry if invalid
+hex_to_bin:
+  cmp al, '0'
+  jl .error
+  cmp al, '9'
+  jle .digit
+  
+  ; Convert to uppercase
+  and al, 0xDF
+  cmp al, 'A'
+  jl .error
+  cmp al, 'F'
+  jle .alpha
+.error:
+  stc
+  ret
+.digit:
+  sub al, '0'
+  clc
+  ret
+.alpha:
+  sub al, 'A'
+  add al, 10
+  clc
+  ret
 
 ; bcd_to_bin: AL is BCD, returns binary in AL
 bcd_to_bin:
@@ -413,7 +516,7 @@ print_string:
   jz .done
   mov ah, 0x0E
   mov bh, 0x00
-  mov bl, 0x07
+  mov bl, [text_attr]
   int 0x10
   jmp .print
 .done:
@@ -423,9 +526,11 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 11: RTC/Timer)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 13: Date/Color Foundations)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
+msg_color_set db "Color attribute updated.", 13, 10, 0
+msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -444,8 +549,11 @@ cmd_mmap db "mmap", 0
 cmd_cpu db "cpu", 0
 cmd_uptime db "uptime", 0
 cmd_time db "time", 0
+cmd_date db "date", 0
+cmd_color db "color ", 0
 
 ; Buffer
 input_buffer times 64 db 0
 mmap_entry times 24 db 0
 vendor_id times 13 db 0
+text_attr db 0x07 ; Default Light Gray on Black

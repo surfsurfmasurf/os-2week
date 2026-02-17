@@ -1,5 +1,5 @@
 Commit Count: 1
-Last Hash: 55d55ba581b6afcb2d7c15604a08edc43a221d0e
-What Changed: Added 'uptime' command to shell; implemented decimal printing helper.
-What's Next: GDT and Protected Mode entry.
-Push Status: Pending...
+Hashes: 77665e5
+What Changed: Implemented 'time' command in stage2.asm using RTC CMOS ports; added BCD conversion and 2-digit decimal printing helpers.
+What's Next: Transition to Protected Mode (GDT setup) and IDT.
+Push Status: Success (main -> main)
