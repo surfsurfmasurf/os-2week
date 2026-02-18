@@ -132,6 +132,11 @@ process_command:
   call strcmp_prefix
   jc .do_color
 
+  ; Command: 'dump'
+  mov di, cmd_dump
+  call strcmp_prefix
+  jc .do_dump
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -238,6 +243,38 @@ process_command:
 
 .color_help:
   mov si, msg_color_help
+  call print_string
+  ret
+
+.do_dump:
+  ; Simple hex dump: 'dump XXXX' (hex offset from 0x0000)
+  ; Skip "dump " (5 chars)
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .dump_help
+
+  ; Parse 4-digit hex address
+  call parse_hex_word
+  jc .dump_help
+  
+  ; AX now contains the offset
+  mov si, ax
+  mov cx, 16 ; Dump 16 bytes
+.dump_loop:
+  lodsb
+  call print_hex_byte
+  mov al, ' '
+  mov ah, 0x0E
+  int 0x10
+  loop .dump_loop
+
+  mov si, newline
+  call print_string
+  ret
+
+.dump_help:
+  mov si, msg_dump_help
   call print_string
   ret
 
@@ -350,6 +387,44 @@ process_command:
   ret
 
 ; --- helpers ---
+
+; parse_hex_word: parse 4 hex digits from DS:SI into AX. Sets Carry on error.
+parse_hex_word:
+  push bx
+  push cx
+  xor bx, bx
+  mov cx, 4
+.loop:
+  mov al, [si]
+  call hex_to_bin
+  jc .done
+  shl bx, 4
+  or bl, al
+  inc si
+  loop .loop
+  mov ax, bx
+  clc
+.done:
+  pop cx
+  pop bx
+  ret
+
+; print_hex_byte: prints AL as 2 hex digits
+print_hex_byte:
+  push ax
+  shr al, 4
+  call .print_nibble
+  pop ax
+  and al, 0x0F
+.print_nibble:
+  cmp al, 10
+  jl .digit
+  add al, 7
+.digit:
+  add al, '0'
+  mov ah, 0x0E
+  int 0x10
+  ret
 
 ; hex_to_bin: AL is hex char, returns value in AL, sets Carry if invalid
 hex_to_bin:
@@ -526,11 +601,12 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 13: Date/Color Foundations)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 14: Hex Dump)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
+msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -551,6 +627,7 @@ cmd_uptime db "uptime", 0
 cmd_time db "time", 0
 cmd_date db "date", 0
 cmd_color db "color ", 0
+cmd_dump db "dump ", 0
 
 ; Buffer
 input_buffer times 64 db 0
