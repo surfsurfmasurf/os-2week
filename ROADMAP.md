@@ -21,15 +21,16 @@ Build a demoable OS that boots, accepts keyboard commands, and manages simple sy
 - [x] Day 7: Input Buffering - Buffer keystrokes into strings.
 - [x] Day 8: Command Parser - Multi-character command support (e.g., `help`, `clear`).
 
-### Phase 3: Kernel Foundations (Days 9-11)
-- [ ] Day 9: Interrupt Descriptor Table (IDT) - Proper exception handling.
-- [ ] Day 10: Physical Memory Manager - Bitmap-based page allocation.
-- [ ] Day 11: Virtual Memory - Simple paging setup for kernel.
+### Phase 3: Kernel Foundations (Days 9-11) - 🚧 IN PROGRESS
+- [x] Day 9: Interrupt Descriptor Table (IDT) - Proper exception handling.
+- [x] Day 10: Physical Memory Manager - Bitmap-based page allocation.
+- [x] Day 11: Virtual Memory - Simple paging setup for kernel.
 
-### Phase 4: System Services & Apps (Days 12-14)
-- [ ] Day 12: System Calls - Software interrupt interface (Int 0x80 style).
-- [ ] Day 13: Userspace Transition - Jump to Ring 3.
-- [ ] Day 14: Final Demo App - Run a standalone "Hello World" app in userspace.
+### Phase 4: System Services & Apps (Days 12-14) - 🚧 IN PROGRESS
+- [x] Day 12: System Calls - Software interrupt interface (Int 0x80 style).
+- [x] Day 13: Userspace Transition - Jump to Ring 3.
+- [x] Day 14: Final Demo App - Run a standalone "Hello World" app in userspace.
+- [x] Day 15: Sprint Extension - Memory Inspection Tools (`peek` command).
 
 ---
 

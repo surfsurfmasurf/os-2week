@@ -1,5 +1,5 @@
 Commit count: 1
-Hash: ea4c5d78454e972dbfa3c7d4a1bbfba7410acf4a
-Changes: Added date and color commands, updated print_string to support attributes.
-Next: Basic memory management or FS.
+Hash: 8a9fd7f
+What changed: Added 'dump <addr>' command to stage2 shell; added hex parsing and printing helpers.
+What's next: FAT12 filesystem or Protected Mode entry.
 Push status: Success

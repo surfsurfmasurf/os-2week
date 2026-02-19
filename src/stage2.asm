@@ -137,6 +137,11 @@ process_command:
   call strcmp_prefix
   jc .do_dump
 
+  ; Command: 'peek'
+  mov di, cmd_peek
+  call strcmp_prefix
+  jc .do_peek
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -275,6 +280,28 @@ process_command:
 
 .dump_help:
   mov si, msg_dump_help
+  call print_string
+  ret
+
+.do_peek:
+  ; Peek 1 byte: 'peek XXXX'
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .peek_help
+
+  call parse_hex_word
+  jc .peek_help
+
+  mov bx, ax
+  mov al, [bx]
+  call print_hex_byte
+  mov si, newline
+  call print_string
+  ret
+
+.peek_help:
+  mov si, msg_peek_help
   call print_string
   ret
 
@@ -602,11 +629,12 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.0 (Day 14: Hex Dump)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
+msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -628,6 +656,7 @@ cmd_time db "time", 0
 cmd_date db "date", 0
 cmd_color db "color ", 0
 cmd_dump db "dump ", 0
+cmd_peek db "peek ", 0
 
 ; Buffer
 input_buffer times 64 db 0
