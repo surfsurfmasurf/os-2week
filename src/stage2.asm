@@ -142,6 +142,11 @@ process_command:
   call strcmp_prefix
   jc .do_peek
 
+  ; Command: 'poke'
+  mov di, cmd_poke
+  call strcmp_prefix
+  jc .do_poke
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -305,6 +310,47 @@ process_command:
   call print_string
   ret
 
+.do_poke:
+  ; Poke 1 byte: 'poke XXXX YY'
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .poke_help
+
+  call parse_hex_word
+  jc .poke_help
+  push ax ; Save address
+
+  ; Skip to space after address
+  ; SI already advanced by 4 in parse_hex_word
+  mov al, [si]
+  cmp al, ' '
+  jne .poke_err_pop
+
+  inc si ; Move to hex byte
+  mov al, [si]
+  test al, al
+  jz .poke_err_pop
+
+  call parse_hex_byte
+  jc .poke_err_pop
+  
+  mov bl, al ; value
+  pop ax     ; address
+  mov di, ax
+  mov [di], bl
+
+  mov si, msg_poke_ok
+  call print_string
+  ret
+
+.poke_err_pop:
+  pop ax
+.poke_help:
+  mov si, msg_poke_help
+  call print_string
+  ret
+
 .do_cls:
   mov ax, 0x0003 ; Reset video mode (clears screen)
   int 0x10
@@ -433,6 +479,29 @@ parse_hex_word:
   clc
 .done:
   pop cx
+  pop bx
+  ret
+
+; parse_hex_byte: parse 2 hex digits from DS:SI into AL. Sets Carry on error.
+parse_hex_byte:
+  push bx
+  mov al, [si]
+  call hex_to_bin
+  jc .err
+  mov bl, al
+  shl bl, 4
+  inc si
+  mov al, [si]
+  call hex_to_bin
+  jc .err
+  or bl, al
+  inc si
+  mov al, bl
+  clc
+  jmp .done
+.err:
+  stc
+.done:
   pop bx
   ret
 
@@ -628,13 +697,15 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 14: Hex Dump)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 16: Memory Poke)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
 msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
+msg_poke_help db "Usage: poke <4-digit-hex> <2-digit-hex> (e.g., poke 0500 FF)", 13, 10, 0
+msg_poke_ok db "Memory updated.", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -657,6 +728,7 @@ cmd_date db "date", 0
 cmd_color db "color ", 0
 cmd_dump db "dump ", 0
 cmd_peek db "peek ", 0
+cmd_poke db "poke ", 0
 
 ; Buffer
 input_buffer times 64 db 0

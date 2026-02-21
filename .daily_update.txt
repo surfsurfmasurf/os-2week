@@ -1,5 +1,5 @@
-Commit count: 1
-Hash: 8a9fd7f
-What changed: Added 'dump <addr>' command to stage2 shell; added hex parsing and printing helpers.
-What's next: FAT12 filesystem or Protected Mode entry.
-Push status: Success
+Commit Count: 1
+Hashes: b7912cdd4cf097a6778a38388661860f52e1872e
+What changed: Added 'peek' command to shell for memory inspection. Updated Roadmap.
+What's next: Basic filesystem (FAT12) or 'poke' command.
+Push Status: Success
