@@ -147,6 +147,11 @@ process_command:
   call strcmp_prefix
   jc .do_poke
 
+  ; Command: 'pci'
+  mov di, cmd_pci
+  call strcmp
+  jc .do_pci
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -349,6 +354,109 @@ process_command:
 .poke_help:
   mov si, msg_poke_help
   call print_string
+  ret
+
+.do_pci:
+  mov si, msg_pci_header
+  call print_string
+
+  mov dx, 0x0CF8 ; Config Address Port
+  mov eax, 0x80000000 ; Bit 31: Enable bit
+  
+.pci_loop:
+  ; Check if device exists (Vendor ID != 0xFFFF)
+  push eax
+  out dx, eax
+  mov dx, 0x0CFC ; Config Data Port
+  in eax, dx
+  cmp ax, 0xFFFF
+  je .next_device
+  
+  ; Print Bus/Dev/Fn
+  pop eax
+  push eax
+  
+  ; Bus
+  shr eax, 16
+  and al, 0xFF
+  call print_hex_byte
+  mov al, ':'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Device
+  pop eax
+  push eax
+  shr eax, 11
+  and al, 0x1F
+  call print_hex_byte
+  mov al, '.'
+  mov ah, 0x0E
+  int 0x10
+
+  ; Function
+  pop eax
+  push eax
+  shr eax, 8
+  and al, 0x07
+  call print_hex_byte
+  mov si, space
+  call print_string
+
+  ; Read Vendor:Device
+  mov dx, 0x0CF8
+  pop eax
+  push eax
+  out dx, eax
+  mov dx, 0x0CFC
+  in eax, dx
+  
+  push eax
+  shr eax, 16
+  call print_hex_byte ; Device ID High
+  pop eax
+  push eax
+  shr eax, 8
+  call print_hex_byte ; Device ID Low
+  mov al, ':'
+  mov ah, 0x0E
+  int 0x10
+  pop eax
+  push eax
+  call print_hex_byte ; Vendor ID High (wait, in eax is Dev:Vendor)
+  ; Actually in eax is DevID(31:16) : VenID(15:0)
+  ; Let's re-do carefully
+  pop eax
+  
+  ; Vendor ID (Low 16 bits of EAX)
+  push eax
+  push ax
+  pop dx
+  mov al, dh
+  call print_hex_byte
+  mov al, dl
+  call print_hex_byte
+  mov al, ':'
+  mov ah, 0x0E
+  int 0x10
+  
+  ; Device ID (High 16 bits of EAX)
+  pop eax
+  shr eax, 16
+  mov dx, ax
+  mov al, dh
+  call print_hex_byte
+  mov al, dl
+  call print_hex_byte
+
+  mov si, newline
+  call print_string
+
+.next_device:
+  pop eax
+  add eax, 0x800 ; Increment Device field (bits 11-15)
+  cmp eax, 0x80010000 ; Check if we've scanned all devices on Bus 0 (up to 31)
+  jl .pci_loop
   ret
 
 .do_cls:
@@ -697,8 +805,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 16: Memory Poke)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 17: PCI Enumeration)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
@@ -706,6 +814,7 @@ msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
 msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
 msg_poke_help db "Usage: poke <4-digit-hex> <2-digit-hex> (e.g., poke 0500 FF)", 13, 10, 0
 msg_poke_ok db "Memory updated.", 13, 10, 0
+msg_pci_header db "B:D.F Ven:Dev", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -729,6 +838,7 @@ cmd_color db "color ", 0
 cmd_dump db "dump ", 0
 cmd_peek db "peek ", 0
 cmd_poke db "poke ", 0
+cmd_pci db "pci", 0
 
 ; Buffer
 input_buffer times 64 db 0

@@ -1,5 +1,5 @@
-Commit Count: 1
-Hashes: b7912cdd4cf097a6778a38388661860f52e1872e
-What changed: Added 'peek' command to shell for memory inspection. Updated Roadmap.
-What's next: Basic filesystem (FAT12) or 'poke' command.
-Push Status: Success
+Commit count: 1
+Hashes: c2c4a0c85128a11845562539e0c635f47b82190a
+What changed: Added 'poke' command to Stage 2 shell for memory modification.
+What's next: Loading binary payloads or Protected Mode transition.
+Push status: Success
