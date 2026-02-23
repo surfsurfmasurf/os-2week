@@ -1,5 +1,5 @@
 Commit count: 1
-Hashes: c2c4a0c85128a11845562539e0c635f47b82190a
-What changed: Added 'poke' command to Stage 2 shell for memory modification.
-What's next: Loading binary payloads or Protected Mode transition.
+Hashes: 8bdbef35198e36780c98f8045508a8e132906b38
+What changed: Added 'pci' command to Stage 2 shell for basic bus enumeration.
+What's next: Protected Mode transition or FAT12 filesystem support.
 Push status: Success

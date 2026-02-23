@@ -152,6 +152,11 @@ process_command:
   call strcmp
   jc .do_pci
 
+  ; Command: 'mem'
+  mov di, cmd_mem
+  call strcmp
+  jc .do_mem
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -457,6 +462,25 @@ process_command:
   add eax, 0x800 ; Increment Device field (bits 11-15)
   cmp eax, 0x80010000 ; Check if we've scanned all devices on Bus 0 (up to 31)
   jl .pci_loop
+  ret
+
+.do_mem:
+  ; Simple mem command to show total conventional memory
+  ; BIOS int 0x12 returns KB in AX
+  int 0x12
+  push ax
+  mov si, msg_mem_conv
+  call print_string
+  pop ax
+  xor eax, eax
+  mov ax, [esp-2] ; wait, push ax pushed to stack.
+  ; let's do it cleaner
+  mov ax, [esp] ; ax is on stack
+  xor eax, eax
+  pop ax
+  call print_decimal_32
+  mov si, msg_kb
+  call print_string
   ret
 
 .do_cls:
@@ -806,7 +830,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.0 (Day 17: PCI Enumeration)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
@@ -815,6 +839,8 @@ msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
 msg_poke_help db "Usage: poke <4-digit-hex> <2-digit-hex> (e.g., poke 0500 FF)", 13, 10, 0
 msg_poke_ok db "Memory updated.", 13, 10, 0
 msg_pci_header db "B:D.F Ven:Dev", 13, 10, 0
+msg_mem_conv db "Conventional Memory: ", 0
+msg_kb db " KB", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
@@ -839,6 +865,7 @@ cmd_dump db "dump ", 0
 cmd_peek db "peek ", 0
 cmd_poke db "poke ", 0
 cmd_pci db "pci", 0
+cmd_mem db "mem", 0
 
 ; Buffer
 input_buffer times 64 db 0
