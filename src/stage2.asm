@@ -157,6 +157,11 @@ process_command:
   call strcmp
   jc .do_mem
 
+  ; Command: 'beep'
+  mov di, cmd_beep
+  call strcmp
+  jc .do_beep
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -481,6 +486,35 @@ process_command:
   call print_decimal_32
   mov si, msg_kb
   call print_string
+  ret
+
+.do_beep:
+  ; PC speaker beep
+  ; Frequency = 1193180 / frequency_hz
+  ; For ~1000Hz: 1193
+  mov al, 0xB6
+  out 0x43, al
+  mov ax, 1193
+  out 0x42, al
+  mov al, ah
+  out 0x42, al
+
+  ; Turn speaker on
+  in al, 0x61
+  or al, 0x03
+  out 0x61, al
+
+  ; Wait ~100ms (BIOS wait: Int 15h, AH=86h, CX:DX = microseconds)
+  ; 100,000 us = 0x000186A0
+  mov cx, 0x0001
+  mov dx, 0x86A0
+  mov ah, 0x86
+  int 0x15
+
+  ; Turn speaker off
+  in al, 0x61
+  and al, 0xFC
+  out 0x61, al
   ret
 
 .do_cls:
@@ -829,8 +863,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 17: PCI Enumeration)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 19: PC Speaker Beep)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
@@ -866,6 +900,7 @@ cmd_peek db "peek ", 0
 cmd_poke db "poke ", 0
 cmd_pci db "pci", 0
 cmd_mem db "mem", 0
+cmd_beep db "beep", 0
 
 ; Buffer
 input_buffer times 64 db 0
