@@ -162,6 +162,11 @@ process_command:
   call strcmp
   jc .do_beep
 
+  ; Command: 'exit' (alias for reboot)
+  mov di, cmd_exit
+  call strcmp
+  jc .do_reboot
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -863,8 +868,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 19: PC Speaker Beep)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 20: Command Aliases)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
@@ -901,6 +906,7 @@ cmd_poke db "poke ", 0
 cmd_pci db "pci", 0
 cmd_mem db "mem", 0
 cmd_beep db "beep", 0
+cmd_exit db "exit", 0
 
 ; Buffer
 input_buffer times 64 db 0
