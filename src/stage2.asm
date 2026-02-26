@@ -167,6 +167,11 @@ process_command:
   call strcmp
   jc .do_reboot
 
+  ; Command: 'halt' (halt the CPU)
+  mov di, cmd_halt
+  call strcmp
+  jc .do_halt
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -176,6 +181,14 @@ process_command:
   mov si, msg_ver
   call print_string
   ret
+
+.do_halt:
+  mov si, msg_halt
+  call print_string
+  cli
+.halt_loop:
+  hlt
+  jmp .halt_loop
 
 .do_time:
   ; Read RTC time (HH:MM:SS)
@@ -868,9 +881,10 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 20: Command Aliases)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 21: Halt command & CPU state)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
+msg_halt db "System halted.", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
@@ -907,6 +921,7 @@ cmd_pci db "pci", 0
 cmd_mem db "mem", 0
 cmd_beep db "beep", 0
 cmd_exit db "exit", 0
+cmd_halt db "halt", 0
 
 ; Buffer
 input_buffer times 64 db 0
