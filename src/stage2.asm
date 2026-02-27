@@ -167,6 +167,11 @@ process_command:
   call strcmp
   jc .do_reboot
 
+  ; Command: 'panic' (simulate panic)
+  mov di, cmd_panic
+  call strcmp
+  jc .do_panic
+
   ; Command: 'halt' (halt the CPU)
   mov di, cmd_halt
   call strcmp
@@ -181,6 +186,11 @@ process_command:
   mov si, msg_ver
   call print_string
   ret
+
+.do_panic:
+  mov si, msg_panic
+  call print_string
+  jmp .do_halt
 
 .do_halt:
   mov si, msg_halt
@@ -881,10 +891,11 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 21: Halt command & CPU state)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 22: Kernel Panic simulation)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
+msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
 msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
@@ -921,6 +932,7 @@ cmd_pci db "pci", 0
 cmd_mem db "mem", 0
 cmd_beep db "beep", 0
 cmd_exit db "exit", 0
+cmd_panic db "panic", 0
 cmd_halt db "halt", 0
 
 ; Buffer
