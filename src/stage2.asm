@@ -177,6 +177,11 @@ process_command:
   call strcmp
   jc .do_halt
 
+  ; Command: 'rand' (simple random number)
+  mov di, cmd_rand
+  call strcmp
+  jc .do_rand
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -191,6 +196,20 @@ process_command:
   mov si, msg_panic
   call print_string
   jmp .do_halt
+
+.do_rand:
+  ; Simple LCG or use BIOS timer
+  ; Read BIOS timer tick (0040h:006Ch)
+  push es
+  mov ax, 0x0040
+  mov es, ax
+  mov eax, [es:0x006C]
+  pop es
+  ; Simple "random" from lower 16 bits of timer
+  call print_hex_byte
+  mov si, newline
+  call print_string
+  ret
 
 .do_halt:
   mov si, msg_halt
@@ -891,8 +910,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 22: Kernel Panic simulation)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic", 13, 10, 0
+msg_ver db "os-2week v0.1.0 (Day 23: Pseudo-random generator)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -934,6 +953,7 @@ cmd_beep db "beep", 0
 cmd_exit db "exit", 0
 cmd_panic db "panic", 0
 cmd_halt db "halt", 0
+cmd_rand db "rand", 0
 
 ; Buffer
 input_buffer times 64 db 0
