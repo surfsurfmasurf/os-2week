@@ -182,6 +182,11 @@ process_command:
   call strcmp
   jc .do_rand
 
+  ; Command: 'ls' (list files - mock)
+  mov di, cmd_ls
+  call strcmp
+  jc .do_ls_mock
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -189,6 +194,11 @@ process_command:
 
 .do_ver:
   mov si, msg_ver
+  call print_string
+  ret
+
+.do_ls_mock:
+  mov si, msg_ls_mock
   call print_string
   ret
 
@@ -910,8 +920,9 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.0 (Day 23: Pseudo-random generator)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand", 13, 10, 0
+msg_ver db "os-2week v0.1.1 (Day 24: Mock filesystem)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls", 13, 10, 0
+msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -954,6 +965,7 @@ cmd_exit db "exit", 0
 cmd_panic db "panic", 0
 cmd_halt db "halt", 0
 cmd_rand db "rand", 0
+cmd_ls db "ls", 0
 
 ; Buffer
 input_buffer times 64 db 0
