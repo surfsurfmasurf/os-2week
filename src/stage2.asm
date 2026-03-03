@@ -187,6 +187,11 @@ process_command:
   call strcmp
   jc .do_ls_mock
 
+  ; Command: 'read' (read sector - INT 13h)
+  mov di, cmd_read
+  call strcmp_prefix
+  jc .do_read
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -199,6 +204,65 @@ process_command:
 
 .do_ls_mock:
   mov si, msg_ls_mock
+  call print_string
+  ret
+
+.do_read:
+  ; Usage: read <sector_hex>
+  ; Reads 1 sector (512 bytes) to 0x2000:0x0000
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .read_help
+
+  call parse_hex_word
+  jc .read_help
+  push ax ; Sector number (LBA for now, simplified)
+
+  ; For simplicity, assume Floppy Drive 0 (DL=0)
+  ; and map LBA to CHS:
+  ; Sectors per track: 18 (Standard 1.44MB floppy)
+  ; Heads: 2
+  ; Sector = (LBA % 18) + 1
+  ; Head = (LBA / 18) % 2
+  ; Cylinder = (LBA / (18 * 2))
+
+  pop ax
+  mov bl, 18
+  div bl       ; AL = LBA / 18, AH = LBA % 18
+  mov cl, ah
+  inc cl       ; CL = Sector (1-based)
+
+  xor ah, ah
+  mov bl, 2
+  div bl       ; AL = Cylinder, AH = Head
+  mov dh, ah   ; DH = Head
+  mov ch, al   ; CH = Cylinder
+  mov dl, 0    ; Drive 0
+
+  ; Target buffer 0x2000:0x0000
+  mov ax, 0x2000
+  mov es, ax
+  xor bx, bx
+
+  mov ax, 0x0201 ; AH=02 (Read), AL=01 (1 sector)
+  int 0x13
+  jc .read_err
+
+  mov si, msg_read_ok
+  call print_string
+  ret
+
+.read_err:
+  mov si, msg_read_err
+  call print_string
+  call print_hex_byte ; Error code in AH? wait, status is in AH.
+  mov si, newline
+  call print_string
+  ret
+
+.read_help:
+  mov si, msg_read_help
   call print_string
   ret
 
@@ -920,9 +984,12 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.1 (Day 24: Mock filesystem)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls", 13, 10, 0
+msg_ver db "os-2week v0.1.2 (Day 25: BIOS Disk Read)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls, read <lba>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
+msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
+msg_read_err db "Read Error: code 0x", 0
+msg_read_help db "Usage: read <lba-hex> (0-11) - simple disk probe", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -966,6 +1033,7 @@ cmd_panic db "panic", 0
 cmd_halt db "halt", 0
 cmd_rand db "rand", 0
 cmd_ls db "ls", 0
+cmd_read db "read ", 0
 
 ; Buffer
 input_buffer times 64 db 0
