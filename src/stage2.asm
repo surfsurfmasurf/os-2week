@@ -187,6 +187,11 @@ process_command:
   call strcmp
   jc .do_ls_mock
 
+  ; Command: 'cat' (print file contents)
+  mov di, cmd_cat
+  call strcmp_prefix
+  jc .do_cat
+
   ; Command: 'read' (read sector - INT 13h)
   mov di, cmd_read
   call strcmp_prefix
@@ -204,6 +209,74 @@ process_command:
 
 .do_ls_mock:
   mov si, msg_ls_mock
+  call print_string
+  ret
+
+.do_cat:
+  ; Usage: cat <lba_hex>
+  ; Reuses 'read' logic to dump the first 64 bytes of a sector as ASCII
+  add si, 4
+  mov al, [si]
+  test al, al
+  jz .cat_help
+
+  call parse_hex_word
+  jc .cat_help
+  push ax
+
+  ; Call the read routine logic (simplified: copy-paste for now or refactor)
+  ; Mapping LBA to CHS for 1.44MB Floppy
+  pop ax
+  mov bl, 18
+  div bl       ; AL = LBA / 18, AH = LBA % 18
+  mov cl, ah
+  inc cl       ; CL = Sector (1-based)
+  xor ah, ah
+  mov bl, 2
+  div bl       ; AL = Cylinder, AH = Head
+  mov dh, ah   ; DH = Head
+  mov ch, al   ; CH = Cylinder
+  mov dl, 0    ; Drive 0
+
+  ; Target buffer 0x2000:0x0000
+  mov ax, 0x2000
+  mov es, ax
+  xor bx, bx
+  mov ax, 0x0201
+  int 0x13
+  jc .read_err
+
+  ; Print first 64 bytes as ASCII
+  mov si, 0
+  mov ax, 0x2000
+  mov ds, ax
+  mov cx, 64
+.cat_loop:
+  lodsb
+  test al, al
+  jz .cat_next
+  cmp al, 32
+  jl .cat_dot
+  cmp al, 126
+  jg .cat_dot
+  jmp .cat_print
+.cat_dot:
+  mov al, '.'
+.cat_print:
+  mov ah, 0x0E
+  int 0x10
+.cat_next:
+  loop .cat_loop
+  
+  ; Restore DS
+  mov ax, 0x0000
+  mov ds, ax
+  mov si, newline
+  call print_string
+  ret
+
+.cat_help:
+  mov si, msg_cat_help
   call print_string
   ret
 
@@ -984,9 +1057,10 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.2 (Day 25: BIOS Disk Read)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls, read <lba>", 13, 10, 0
+msg_ver db "os-2week v0.1.3 (Day 26: Mock File Reading)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
+msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
 msg_read_err db "Read Error: code 0x", 0
 msg_read_help db "Usage: read <lba-hex> (0-11) - simple disk probe", 13, 10, 0
@@ -1033,6 +1107,7 @@ cmd_panic db "panic", 0
 cmd_halt db "halt", 0
 cmd_rand db "rand", 0
 cmd_ls db "ls", 0
+cmd_cat db "cat ", 0
 cmd_read db "read ", 0
 
 ; Buffer
