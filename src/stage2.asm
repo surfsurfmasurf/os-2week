@@ -224,20 +224,7 @@ process_command:
   jc .cat_help
   push ax
 
-  ; Call the read routine logic (simplified: copy-paste for now or refactor)
-  ; Mapping LBA to CHS for 1.44MB Floppy
-  pop ax
-  mov bl, 18
-  div bl       ; AL = LBA / 18, AH = LBA % 18
-  mov cl, ah
-  inc cl       ; CL = Sector (1-based)
-  xor ah, ah
-  mov bl, 2
-  div bl       ; AL = Cylinder, AH = Head
-  mov dh, ah   ; DH = Head
-  mov ch, al   ; CH = Cylinder
-  mov dl, 0    ; Drive 0
-
+  call lba_to_chs
   ; Target buffer 0x2000:0x0000
   mov ax, 0x2000
   mov es, ax
@@ -290,28 +277,8 @@ process_command:
 
   call parse_hex_word
   jc .read_help
-  push ax ; Sector number (LBA for now, simplified)
-
-  ; For simplicity, assume Floppy Drive 0 (DL=0)
-  ; and map LBA to CHS:
-  ; Sectors per track: 18 (Standard 1.44MB floppy)
-  ; Heads: 2
-  ; Sector = (LBA % 18) + 1
-  ; Head = (LBA / 18) % 2
-  ; Cylinder = (LBA / (18 * 2))
-
-  pop ax
-  mov bl, 18
-  div bl       ; AL = LBA / 18, AH = LBA % 18
-  mov cl, ah
-  inc cl       ; CL = Sector (1-based)
-
-  xor ah, ah
-  mov bl, 2
-  div bl       ; AL = Cylinder, AH = Head
-  mov dh, ah   ; DH = Head
-  mov ch, al   ; CH = Cylinder
-  mov dl, 0    ; Drive 0
+  
+  call lba_to_chs
 
   ; Target buffer 0x2000:0x0000
   mov ax, 0x2000
@@ -821,6 +788,25 @@ process_command:
 
 ; --- helpers ---
 
+lba_to_chs:
+  ; Input: AX = LBA
+  ; Output: CH=Cyl, DH=Head, CL=Sector, DL=0
+  ; For 1.44MB Floppy (18 SPT, 2 Heads)
+  push bx
+  mov bl, 18
+  div bl       ; AL = LBA / 18, AH = LBA % 18
+  mov cl, ah
+  inc cl       ; CL = Sector (1-based)
+
+  xor ah, ah
+  mov bl, 2
+  div bl       ; AL = Cylinder, AH = Head
+  mov dh, ah   ; DH = Head
+  mov ch, al   ; CH = Cylinder
+  mov dl, 0    ; Drive 0
+  pop bx
+  ret
+
 ; parse_hex_word: parse 4 hex digits from DS:SI into AX. Sets Carry on error.
 parse_hex_word:
   push bx
@@ -1057,7 +1043,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.3 (Day 26: Mock File Reading)", 13, 10, 0
+msg_ver db "os-2week v0.1.4 (Day 27: BIOS Disk Routine Refactor)", 13, 10, 0
 msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0

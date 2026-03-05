@@ -1,5 +1,5 @@
-Commit count: 33
-Hashes: f35e12c, <new_hash_after_commit>
-What changed: BIOS Disk Read routine (INT 13h) implemented. New 'read' command added to shell to probe sectors into memory. Daily log 2026-03-03.
-What's next: Begin FAT12 filesystem parsing to handle files beyond a mock 'ls'.
+Commit count: 1
+Hashes: 41fea8a
+What changed: Added 'cat' command to stage2.asm to read and display sector contents as ASCII. Updated daily log and version to v0.1.3.
+What's next: Implement real FAT12 directory parsing.
 Push status: Success
