@@ -192,6 +192,11 @@ process_command:
   call strcmp_prefix
   jc .do_cat
 
+  ; Command: 'edit' (edit memory as string)
+  mov di, cmd_edit
+  call strcmp_prefix
+  jc .do_edit
+
   ; Command: 'read' (read sector - INT 13h)
   mov di, cmd_read
   call strcmp_prefix
@@ -264,6 +269,39 @@ process_command:
 
 .cat_help:
   mov si, msg_cat_help
+  call print_string
+  ret
+
+.do_edit:
+  ; Usage: edit <addr_hex> <string>
+  ; Writes a string to memory at <addr_hex>
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .edit_help
+
+  call parse_hex_word
+  jc .edit_help
+  mov di, ax ; target address
+
+  ; Skip to space after address
+  mov al, [si]
+  cmp al, ' '
+  jne .edit_help
+  inc si ; start of string
+
+.edit_loop:
+  lodsb
+  stosb
+  test al, al
+  jnz .edit_loop
+
+  mov si, msg_poke_ok ; reuse "Memory updated"
+  call print_string
+  ret
+
+.edit_help:
+  mov si, msg_edit_help
   call print_string
   ret
 
@@ -1043,10 +1081,11 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.4 (Day 27: BIOS Disk Routine Refactor)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>", 13, 10, 0
+msg_ver db "os-2week v0.1.5 (Day 28: Add 'edit' command)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
+msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
 msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
 msg_read_err db "Read Error: code 0x", 0
 msg_read_help db "Usage: read <lba-hex> (0-11) - simple disk probe", 13, 10, 0
@@ -1094,6 +1133,7 @@ cmd_halt db "halt", 0
 cmd_rand db "rand", 0
 cmd_ls db "ls", 0
 cmd_cat db "cat ", 0
+cmd_edit db "edit ", 0
 cmd_read db "read ", 0
 
 ; Buffer
