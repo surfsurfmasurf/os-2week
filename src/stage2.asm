@@ -202,6 +202,11 @@ process_command:
   call strcmp_prefix
   jc .do_read
 
+  ; Command: 'write' (write sector - INT 13h)
+  mov di, cmd_write
+  call strcmp_prefix
+  jc .do_write
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -341,6 +346,45 @@ process_command:
 
 .read_help:
   mov si, msg_read_help
+  call print_string
+  ret
+
+.do_write:
+  ; Usage: write <lba_hex>
+  ; Writes 1 sector (512 bytes) from 0x2000:0x0000
+  add si, 6
+  mov al, [si]
+  test al, al
+  jz .write_help
+
+  call parse_hex_word
+  jc .write_help
+  
+  call lba_to_chs
+
+  ; Source buffer 0x2000:0x0000
+  mov ax, 0x2000
+  mov es, ax
+  xor bx, bx
+
+  mov ax, 0x0301 ; AH=03 (Write), AL=01 (1 sector)
+  int 0x13
+  jc .write_err
+
+  mov si, msg_write_ok
+  call print_string
+  ret
+
+.write_err:
+  mov si, msg_write_err
+  call print_string
+  call print_hex_byte
+  mov si, newline
+  call print_string
+  ret
+
+.write_help:
+  mov si, msg_write_help
   call print_string
   ret
 
@@ -1081,14 +1125,17 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.5 (Day 28: Add 'edit' command)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>", 13, 10, 0
+msg_ver db "os-2week v0.1.6 (Day 29: Add 'write' command)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
 msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
 msg_read_err db "Read Error: code 0x", 0
 msg_read_help db "Usage: read <lba-hex> (0-11) - simple disk probe", 13, 10, 0
+msg_write_ok db "Write Success from 2000:0000", 13, 10, 0
+msg_write_err db "Write Error: code 0x", 0
+msg_write_help db "Usage: write <lba-hex> - PERSISTENT write to disk", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -1135,6 +1182,7 @@ cmd_ls db "ls", 0
 cmd_cat db "cat ", 0
 cmd_edit db "edit ", 0
 cmd_read db "read ", 0
+cmd_write db "write ", 0
 
 ; Buffer
 input_buffer times 64 db 0
