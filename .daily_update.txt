@@ -1,6 +1,8 @@
-OS Project Update (Day 27)
-Commit: c314d52
-Hash: c314d52c020556f8745543c72b226e6d8c0b3952
-Changed: Refactored BIOS disk routines into shared lba_to_chs procedure.
-Next: FAT12 directory traversal and real ls command.
-Push Status: Success
+OS Project Daily Update (Day 29)
+------------------------------
+Date: 2026-03-07
+Commit: 5f46545f23de46e72ec7c4a43e95a7b3fdbdb53f
+Changes: Added 'write' command to shell for persistent sector writing (INT 13h).
+Status: Pending push.
+Next: FAT12 directory entry parsing and actual 'ls' command.
+Repo: https://github.com/surfsurfmasurf/os-2week

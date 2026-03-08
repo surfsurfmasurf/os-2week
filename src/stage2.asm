@@ -207,6 +207,11 @@ process_command:
   call strcmp_prefix
   jc .do_write
 
+  ; Command: 'fill' (fill buffer with byte)
+  mov di, cmd_fill
+  call strcmp_prefix
+  jc .do_fill
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -385,6 +390,34 @@ process_command:
 
 .write_help:
   mov si, msg_write_help
+  call print_string
+  ret
+
+.do_fill:
+  ; Usage: fill <val_hex>
+  ; Fills the transfer buffer (0x2000:0x0000) with 512 bytes of <val_hex>
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .fill_help
+
+  call parse_hex_byte
+  jc .fill_help
+  
+  mov bl, al
+  mov ax, 0x2000
+  mov es, ax
+  xor di, di
+  mov al, bl
+  mov cx, 512
+  rep stosb
+
+  mov si, msg_fill_ok
+  call print_string
+  ret
+
+.fill_help:
+  mov si, msg_fill_help
   call print_string
   ret
 
@@ -1125,8 +1158,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.6 (Day 29: Add 'write' command)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>", 13, 10, 0
+msg_ver db "os-2week v0.1.7 (Day 30: Add 'fill' command)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
@@ -1136,6 +1169,8 @@ msg_read_help db "Usage: read <lba-hex> (0-11) - simple disk probe", 13, 10, 0
 msg_write_ok db "Write Success from 2000:0000", 13, 10, 0
 msg_write_err db "Write Error: code 0x", 0
 msg_write_help db "Usage: write <lba-hex> - PERSISTENT write to disk", 13, 10, 0
+msg_fill_ok db "Buffer filled.", 13, 10, 0
+msg_fill_help db "Usage: fill <hex-byte> - fills transfer buffer (512b) with value", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -1183,6 +1218,7 @@ cmd_cat db "cat ", 0
 cmd_edit db "edit ", 0
 cmd_read db "read ", 0
 cmd_write db "write ", 0
+cmd_fill db "fill ", 0
 
 ; Buffer
 input_buffer times 64 db 0
