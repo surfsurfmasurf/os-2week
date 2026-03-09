@@ -1,8 +1,8 @@
-OS Project Daily Update (Day 29)
+OS Project Daily Update (Day 30)
 ------------------------------
-Date: 2026-03-07
-Commit: 5f46545f23de46e72ec7c4a43e95a7b3fdbdb53f
-Changes: Added 'write' command to shell for persistent sector writing (INT 13h).
-Status: Pending push.
-Next: FAT12 directory entry parsing and actual 'ls' command.
+Date: 2026-03-08
+Commit: bb221cc4181d2d50fe2d03052d183eb46b74e7b7
+Changes: Added 'fill' command to shell for initializing the transfer buffer (512 bytes).
+Status: Success
+Next: FAT12 directory entry parsing and real 'ls' command.
 Repo: https://github.com/surfsurfmasurf/os-2week
