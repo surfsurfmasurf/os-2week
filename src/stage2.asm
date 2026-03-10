@@ -217,6 +217,11 @@ process_command:
   call strcmp_prefix
   jc .do_seek
 
+  ; Command: 'whoami'
+  mov di, cmd_whoami
+  call strcmp
+  jc .do_whoami
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -439,6 +444,13 @@ process_command:
 
   mov [current_lba], ax
   mov si, msg_seek_ok
+  call print_string
+  ret
+
+.do_whoami:
+  mov si, msg_whoami
+  call print_string
+  mov si, newline
   call print_string
   ret
 
@@ -1184,9 +1196,10 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.7 (Day 31: Add 'seek' command)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>", 13, 10, 0
+msg_ver db "os-2week v0.1.8 (Day 32: Add 'whoami' command)", 13, 10, 0
+msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
+msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
 msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
@@ -1248,6 +1261,7 @@ cmd_read db "read ", 0
 cmd_write db "write ", 0
 cmd_fill db "fill ", 0
 cmd_seek db "seek ", 0
+cmd_whoami db "whoami", 0
 
 ; Buffer
 input_buffer times 64 db 0
