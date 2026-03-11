@@ -222,6 +222,11 @@ process_command:
   call strcmp
   jc .do_whoami
 
+  ; Command: 'clear' (alias for cls)
+  mov di, cmd_clear
+  call strcmp
+  jc .do_cls
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -834,6 +839,11 @@ process_command:
 .do_cls:
   mov ax, 0x0003 ; Reset video mode (clears screen)
   int 0x10
+  ; Set cursor to (0,0) just in case
+  mov ah, 0x02
+  mov bh, 0x00
+  mov dx, 0x0000
+  int 0x10
   ret
 
 .do_reboot:
@@ -1196,8 +1206,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.8 (Day 32: Add 'whoami' command)", 13, 10, 0
-msg_help db "Available: ver, cls, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
+msg_ver db "os-2week v0.1.9 (Day 33: Add 'clear' alias and 'cls' update)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
@@ -1262,6 +1272,7 @@ cmd_write db "write ", 0
 cmd_fill db "fill ", 0
 cmd_seek db "seek ", 0
 cmd_whoami db "whoami", 0
+cmd_clear db "clear", 0
 
 ; Buffer
 input_buffer times 64 db 0
