@@ -192,6 +192,11 @@ process_command:
   call strcmp_prefix
   jc .do_cat
 
+  ; Command: 'type' (alias for cat)
+  mov di, cmd_type
+  call strcmp_prefix
+  jc .do_cat
+
   ; Command: 'edit' (edit memory as string)
   mov di, cmd_edit
   call strcmp_prefix
@@ -1206,8 +1211,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.9 (Day 33: Add 'clear' alias and 'cls' update)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
+msg_ver db "os-2week v0.1.10 (Day 34: Add 'type' alias for 'cat')", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
@@ -1273,6 +1278,7 @@ cmd_fill db "fill ", 0
 cmd_seek db "seek ", 0
 cmd_whoami db "whoami", 0
 cmd_clear db "clear", 0
+cmd_type db "type ", 0
 
 ; Buffer
 input_buffer times 64 db 0
