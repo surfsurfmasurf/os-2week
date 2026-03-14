@@ -237,6 +237,16 @@ process_command:
   call strcmp_prefix
   jc .do_kill_mock
 
+  ; Command: 'df' (disk space mock)
+  mov di, cmd_df
+  call strcmp
+  jc .do_df_mock
+
+  ; Command: 'free' (memory usage)
+  mov di, cmd_free
+  call strcmp
+  jc .do_mem
+
   ; Command: 'clear' (alias for cls)
   mov di, cmd_clear
   call strcmp
@@ -259,6 +269,11 @@ process_command:
 
 .do_ps_mock:
   mov si, msg_ps_mock
+  call print_string
+  ret
+
+.do_df_mock:
+  mov si, msg_df_mock
   call print_string
   ret
 
@@ -1231,10 +1246,11 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.11 (Day 35: Add 'ps' and 'kill' mock commands)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami", 13, 10, 0
+msg_ver db "os-2week v0.1.12 (Day 36: Add 'free' alias and 'df' mock)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, df", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
+msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
 msg_kill_ok db "Process terminated.", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
@@ -1303,6 +1319,8 @@ cmd_clear db "clear", 0
 cmd_type db "type ", 0
 cmd_ps db "ps", 0
 cmd_kill db "kill ", 0
+cmd_free db "free", 0
+cmd_df db "df", 0
 
 ; Buffer
 input_buffer times 64 db 0
