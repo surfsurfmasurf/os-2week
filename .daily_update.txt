@@ -1,8 +1,10 @@
-OS Project Daily Update (Day 30)
-------------------------------
-Date: 2026-03-08
-Commit: bb221cc4181d2d50fe2d03052d183eb46b74e7b7
-Changes: Added 'fill' command to shell for initializing the transfer buffer (512 bytes).
-Status: Success
-Next: FAT12 directory entry parsing and real 'ls' command.
+OS Daily Update [2026-03-14]
 Repo: https://github.com/surfsurfmasurf/os-2week
+Commits: 1
+Latest: 2cabeaa Day 36: Add free and df commands for Linux CLI parity
+Changes: 
+- Added 'free' alias for memory info.
+- Added 'df' mock command for disk usage.
+- Updated help and version to v0.1.12.
+Next: Task management/multitasking research.
+Push: Success.

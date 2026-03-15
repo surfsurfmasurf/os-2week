@@ -242,10 +242,20 @@ process_command:
   call strcmp
   jc .do_df_mock
 
+  ; Command: 'du' (disk usage mock)
+  mov di, cmd_du
+  call strcmp
+  jc .do_du_mock
+
   ; Command: 'free' (memory usage)
   mov di, cmd_free
   call strcmp
   jc .do_mem
+
+  ; Command: 'touch' (mock file creation)
+  mov di, cmd_touch
+  call strcmp_prefix
+  jc .do_touch_mock
 
   ; Command: 'clear' (alias for cls)
   mov di, cmd_clear
@@ -274,6 +284,16 @@ process_command:
 
 .do_df_mock:
   mov si, msg_df_mock
+  call print_string
+  ret
+
+.do_du_mock:
+  mov si, msg_du_mock
+  call print_string
+  ret
+
+.do_touch_mock:
+  mov si, msg_touch_ok
   call print_string
   ret
 
@@ -1246,12 +1266,14 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.12 (Day 36: Add 'free' alias and 'df' mock)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, df", 13, 10, 0
-msg_ls_mock db "boot.bin stage2.bin README.txt", 13, 10, 0
+msg_ver db "os-2week v0.1.13 (Day 37: Add 'du' mock and 'touch' mock)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, df, du, touch", 13, 10, 0
+msg_ls_mock db "boot.bin stage2.bin README.txt test.txt", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
+msg_du_mock db "512    ./boot.bin", 13, 10, "2048   ./stage2.bin", 13, 10, "128    ./README.txt", 13, 10, "0      ./test.txt", 13, 10, "2688   .", 13, 10, 0
 msg_kill_ok db "Process terminated.", 13, 10, 0
+msg_touch_ok db "File created.", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
@@ -1321,6 +1343,8 @@ cmd_ps db "ps", 0
 cmd_kill db "kill ", 0
 cmd_free db "free", 0
 cmd_df db "df", 0
+cmd_du db "du", 0
+cmd_touch db "touch ", 0
 
 ; Buffer
 input_buffer times 64 db 0
