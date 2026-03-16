@@ -257,6 +257,16 @@ process_command:
   call strcmp_prefix
   jc .do_touch_mock
 
+  ; Command: 'rm' (mock file removal)
+  mov di, cmd_rm
+  call strcmp_prefix
+  jc .do_rm_mock
+
+  ; Command: 'pwd' (print working directory mock)
+  mov di, cmd_pwd
+  call strcmp
+  jc .do_pwd_mock
+
   ; Command: 'clear' (alias for cls)
   mov di, cmd_clear
   call strcmp
@@ -294,6 +304,16 @@ process_command:
 
 .do_touch_mock:
   mov si, msg_touch_ok
+  call print_string
+  ret
+
+.do_rm_mock:
+  mov si, msg_rm_ok
+  call print_string
+  ret
+
+.do_pwd_mock:
+  mov si, msg_pwd_mock
   call print_string
   ret
 
@@ -1266,14 +1286,16 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.13 (Day 37: Add 'du' mock and 'touch' mock)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, df, du, touch", 13, 10, 0
+msg_ver db "os-2week v0.1.14 (Day 38: Add 'rm' mock and 'pwd' mock)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, df, du, touch, rm, pwd", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
 msg_du_mock db "512    ./boot.bin", 13, 10, "2048   ./stage2.bin", 13, 10, "128    ./README.txt", 13, 10, "0      ./test.txt", 13, 10, "2688   .", 13, 10, 0
 msg_kill_ok db "Process terminated.", 13, 10, 0
 msg_touch_ok db "File created.", 13, 10, 0
+msg_rm_ok db "File removed.", 13, 10, 0
+msg_pwd_mock db "/", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
@@ -1345,6 +1367,8 @@ cmd_free db "free", 0
 cmd_df db "df", 0
 cmd_du db "du", 0
 cmd_touch db "touch ", 0
+cmd_rm db "rm ", 0
+cmd_pwd db "pwd", 0
 
 ; Buffer
 input_buffer times 64 db 0

@@ -1,10 +1,11 @@
-OS Daily Update [2026-03-14]
+OS Daily Update [2026-03-15]
 Repo: https://github.com/surfsurfmasurf/os-2week
 Commits: 1
-Latest: 2cabeaa Day 36: Add free and df commands for Linux CLI parity
+Latest: f11f4a2 Day 37: Add du and touch mocks for Linux CLI parity
 Changes: 
-- Added 'free' alias for memory info.
-- Added 'df' mock command for disk usage.
-- Updated help and version to v0.1.12.
-Next: Task management/multitasking research.
+- Added 'du' mock command for disk usage per file.
+- Added 'touch' mock command for file creation.
+- Updated 'ls' mock to include test.txt.
+- Incremented version to v0.1.13.
+Next: FAT12 directory entry parsing.
 Push: Success.
