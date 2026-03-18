@@ -1,11 +1,5 @@
-OS Daily Update [2026-03-15]
-Repo: https://github.com/surfsurfmasurf/os-2week
-Commits: 1
-Latest: f11f4a2 Day 37: Add du and touch mocks for Linux CLI parity
-Changes: 
-- Added 'du' mock command for disk usage per file.
-- Added 'touch' mock command for file creation.
-- Updated 'ls' mock to include test.txt.
-- Incremented version to v0.1.13.
-Next: FAT12 directory entry parsing.
-Push: Success.
+Commit count: 1
+Hashes: 3ab761f509966a2f1ee78f1dd3466ca3be5161bf
+What changed: Added 'mkdir', 'rmdir', and 'cd' mock commands to the stage2 shell, bumped version to v0.1.15.
+What's next: Implement actual FAT12 directory traversal.
+Push status: Success
