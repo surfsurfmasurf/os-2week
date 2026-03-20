@@ -307,6 +307,11 @@ process_command:
   call strcmp
   jc .do_history_mock
 
+  ; Command: 'uname'
+  mov di, cmd_uname
+  call strcmp
+  jc .do_uname_mock
+
   ; Command: 'clear' (alias for cls)
   mov di, cmd_clear
   call strcmp
@@ -379,6 +384,11 @@ process_command:
 
 .do_history_mock:
   mov si, msg_history_mock
+  call print_string
+  ret
+
+.do_uname_mock:
+  mov si, msg_uname_mock
   call print_string
   ret
 
@@ -1366,8 +1376,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.17 (Day 41: Add 'su' and 'sudo' mocks)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history", 13, 10, 0
+msg_ver db "os-2week v0.1.18 (Day 42: Add 'uname' mock utility)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
@@ -1381,6 +1391,7 @@ msg_cd_ok db "Directory changed.", 13, 10, 0
 msg_cp_ok db "File copied.", 13, 10, 0
 msg_mv_ok db "File moved.", 13, 10, 0
 msg_history_mock db "1 ver", 13, 10, "2 help", 13, 10, "3 ls", 13, 10, "4 date", 13, 10, "5 history", 13, 10, 0
+msg_uname_mock db "os-2week 0.1.18-generic x86_16 Real Mode", 13, 10, 0
 msg_pwd_mock db "/", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_su_ok db "Switched user (mock).", 13, 10, 0
@@ -1465,6 +1476,7 @@ cmd_cd db "cd ", 0
 cmd_cp db "cp ", 0
 cmd_mv db "mv ", 0
 cmd_history db "history", 0
+cmd_uname db "uname", 0
 
 ; Buffer
 input_buffer times 64 db 0
