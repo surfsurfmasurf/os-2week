@@ -1,5 +1,5 @@
 Commit count: 1
-Hashes: 3ab761f509966a2f1ee78f1dd3466ca3be5161bf
-What changed: Added 'mkdir', 'rmdir', and 'cd' mock commands to the stage2 shell, bumped version to v0.1.15.
-What's next: Implement actual FAT12 directory traversal.
-Push status: Success
+Hashes: 975cc25
+What changed: Implemented 'uname' mock utility, updated help, and bumped version to v0.1.18.
+What's next: Implement basic argc/argv parsing and research Protected Mode.
+Push status: Success.
