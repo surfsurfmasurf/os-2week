@@ -1,5 +1,5 @@
 Commit count: 1
-Hashes: 975cc25
-What changed: Implemented 'uname' mock utility, updated help, and bumped version to v0.1.18.
-What's next: Implement basic argc/argv parsing and research Protected Mode.
-Push status: Success.
+Hashes: acdaa35
+What changed: Added 'sleep' mock utility, updated version to v0.1.19, and updated help message.
+What's next: Begin implementing real FAT12 sector reading for a simple 'ls' implementation.
+Push status: Success

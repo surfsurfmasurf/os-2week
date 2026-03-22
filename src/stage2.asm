@@ -786,9 +786,8 @@ process_command:
   ; Set global text attribute (background 0, foreground AL)
   mov [text_attr], al
   
-  ; Optional: Refresh screen with new color or just let it apply to next prints
-  mov si, msg_color_set
-  call print_string
+  ; Refresh screen with new color
+  call .do_cls
   ret
 
 .color_help:
@@ -1412,8 +1411,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.19 (Day 43: Add 'sleep' mock and improve help)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, type <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>", 13, 10, 0
+msg_ver db "os-2week v0.1.20 (Day 44: Auto-refresh color and clean up messages)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
