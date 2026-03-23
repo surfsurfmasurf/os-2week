@@ -1,5 +1,7 @@
-Commit count: 1
-Hashes: acdaa35
-What changed: Added 'sleep' mock utility, updated version to v0.1.19, and updated help message.
-What's next: Begin implementing real FAT12 sector reading for a simple 'ls' implementation.
-Push status: Success
+Summary: 2026-03-22
+Commit Count: 1
+Hashes: 12f5ea3
+What changed: v0.1.20 - Auto-refresh screen on 'color' command; integrated yesterday's 'sleep' logic.
+What's next: Real file system (FAT12) support for stage2.
+Push status: Success.
+Repo: https://github.com/surfsurfmasurf/os-2week

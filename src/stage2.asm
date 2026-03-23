@@ -152,6 +152,11 @@ process_command:
   call strcmp
   jc .do_pci
 
+  ; Command: 'lspci' (alias for pci)
+  mov di, cmd_lspci
+  call strcmp
+  jc .do_pci
+
   ; Command: 'mem'
   mov di, cmd_mem
   call strcmp
@@ -176,6 +181,11 @@ process_command:
   mov di, cmd_halt
   call strcmp
   jc .do_halt
+
+  ; Command: 'poweroff' (QEMU specific poweroff)
+  mov di, cmd_poweroff
+  call strcmp
+  jc .do_poweroff
 
   ; Command: 'rand' (simple random number)
   mov di, cmd_rand
@@ -696,6 +706,28 @@ process_command:
 .halt_loop:
   hlt
   jmp .halt_loop
+
+.do_poweroff:
+  ; QEMU / Bochs poweroff: write 'Shutdown' to 0x8900
+  ; Or the ACPI/APM way, but for 16-bit QEMU this often works:
+  mov dx, 0x604 ; QEMU -device isa-debug-exit (sometimes 0x501)
+  mov ax, 0x2000
+  out dx, ax
+  
+  ; Bochs/QEMU newer:
+  mov dx, 0xB004
+  mov ax, 0x2000
+  out dx, ax
+
+  ; If we're still here, try the 0x604 way with 0x2000
+  ; or 0x4004 (VirtualBox)
+  mov dx, 0x4004
+  mov ax, 0x3400
+  out dx, ax
+
+  mov si, msg_poweroff_fail
+  call print_string
+  ret
 
 .do_time:
   ; Read RTC time (HH:MM:SS)
@@ -1411,8 +1443,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.20 (Day 44: Auto-refresh color and clean up messages)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>", 13, 10, 0
+msg_ver db "os-2week v0.1.21 (Day 45: Added lspci and poweroff commands)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
@@ -1460,6 +1492,7 @@ msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_uptime db "Uptime: ", 0
 msg_seconds db " seconds", 13, 10, 0
+msg_poweroff_fail db "Poweroff not supported on this platform.", 13, 10, 0
 prompt db "> ", 0
 newline db 13, 10, 0
 space db " ", 0
@@ -1514,6 +1547,8 @@ cmd_mv db "mv ", 0
 cmd_history db "history", 0
 cmd_uname db "uname", 0
 cmd_sleep db "sleep ", 0
+cmd_lspci db "lspci", 0
+cmd_poweroff db "poweroff", 0
 
 ; Buffer
 input_buffer times 64 db 0
