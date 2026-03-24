@@ -978,26 +978,8 @@ process_command:
   in eax, dx
   
   push eax
-  shr eax, 16
-  call print_hex_byte ; Device ID High
-  pop eax
-  push eax
-  shr eax, 8
-  call print_hex_byte ; Device ID Low
-  mov al, ':'
-  mov ah, 0x0E
-  int 0x10
-  pop eax
-  push eax
-  call print_hex_byte ; Vendor ID High (wait, in eax is Dev:Vendor)
-  ; Actually in eax is DevID(31:16) : VenID(15:0)
-  ; Let's re-do carefully
-  pop eax
-  
   ; Vendor ID (Low 16 bits of EAX)
-  push eax
-  push ax
-  pop dx
+  mov dx, ax
   mov al, dh
   call print_hex_byte
   mov al, dl
@@ -1014,6 +996,26 @@ process_command:
   call print_hex_byte
   mov al, dl
   call print_hex_byte
+  mov si, space
+  call print_string
+
+  ; Read Class Code (Offset 0x08)
+  pop eax
+  push eax
+  and eax, 0xFFFFFF00 ; Clear register offset
+  or eax, 0x08        ; Offset 0x08: Revision ID, Class Code
+  mov dx, 0x0CF8
+  out dx, eax
+  mov dx, 0x0CFC
+  in eax, dx
+
+  ; Class Code is bits 31:16 (Base Class 31:24, Sub Class 23:16)
+  shr eax, 16
+  mov dx, ax
+  mov al, dh
+  call print_hex_byte ; Base Class
+  mov al, dl
+  call print_hex_byte ; Sub Class
 
   mov si, newline
   call print_string
@@ -1443,7 +1445,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.21 (Day 45: Added lspci and poweroff commands)", 13, 10, 0
+msg_ver db "os-2week v0.1.22 (Day 46: Improved PCI enumeration with class codes)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
@@ -1485,7 +1487,7 @@ msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
 msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
 msg_poke_help db "Usage: poke <4-digit-hex> <2-digit-hex> (e.g., poke 0500 FF)", 13, 10, 0
 msg_poke_ok db "Memory updated.", 13, 10, 0
-msg_pci_header db "B:D.F Ven:Dev", 13, 10, 0
+msg_pci_header db "B:D.F Ven:Dev Class", 13, 10, 0
 msg_mem_conv db "Conventional Memory: ", 0
 msg_kb db " KB", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0

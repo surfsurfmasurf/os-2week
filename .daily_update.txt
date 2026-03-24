@@ -1,7 +1,16 @@
-Summary: 2026-03-22
+Daily OS Project Update (2-week sprint)
+----------------------------------------
+Date: 2026-03-24
 Commit Count: 1
-Hashes: 12f5ea3
-What changed: v0.1.20 - Auto-refresh screen on 'color' command; integrated yesterday's 'sleep' logic.
-What's next: Real file system (FAT12) support for stage2.
-Push status: Success.
+Latest Hash: 7b1945d35ec55916b43d2cf978f4d2f6672759ef
+What Changed:
+- Improved `pci` / `lspci` command: Corrected Vendor/Device ID display logic and added Class/Subclass Code extraction.
+- Updated `msg_pci_header` to reflect the new output format (B:D.F Ven:Dev Class).
+- Version bumped to v0.1.22.
+
+What's Next:
+- Map common PCI Class Codes to human-readable strings.
+- Initial research and boilerplate for FAT12 filesystem (Stage 3).
+
+Push Status: Success (origin/main)
 Repo: https://github.com/surfsurfmasurf/os-2week
