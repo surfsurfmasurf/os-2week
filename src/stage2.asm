@@ -1030,8 +1030,14 @@ process_command:
   je .pci_network
   cmp bl, 0x03 ; Display
   je .pci_display
+  cmp bl, 0x04 ; Multimedia
+  je .pci_multimedia
   cmp bl, 0x06 ; Bridge
   je .pci_bridge
+  cmp bl, 0x07 ; Communication
+  je .pci_comm
+  cmp bl, 0x0C ; Serial Bus
+  je .pci_serial
   
   mov si, msg_pci_unknown
   jmp .pci_print_class
@@ -1045,8 +1051,17 @@ process_command:
 .pci_display:
   mov si, msg_pci_display
   jmp .pci_print_class
+.pci_multimedia:
+  mov si, msg_pci_multimedia
+  jmp .pci_print_class
 .pci_bridge:
   mov si, msg_pci_bridge
+  jmp .pci_print_class
+.pci_comm:
+  mov si, msg_pci_comm
+  jmp .pci_print_class
+.pci_serial:
+  mov si, msg_pci_serial
   jmp .pci_print_class
 
 .pci_print_class:
@@ -1479,7 +1494,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.23 (Day 47: PCI class name translation)", 13, 10, 0
+msg_ver db "os-2week v0.1.24 (Day 48: Extended PCI class decoding)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
@@ -1525,7 +1540,10 @@ msg_pci_header db "B:D.F Ven:Dev Class", 13, 10, 0
 msg_pci_storage db "Mass Storage", 0
 msg_pci_network db "Network", 0
 msg_pci_display db "Display", 0
+msg_pci_multimedia db "Multimedia", 0
 msg_pci_bridge  db "Bridge", 0
+msg_pci_comm    db "Communication", 0
+msg_pci_serial  db "Serial Bus", 0
 msg_pci_unknown db "Unknown", 0
 msg_mem_conv db "Conventional Memory: ", 0
 msg_kb db " KB", 13, 10, 0
