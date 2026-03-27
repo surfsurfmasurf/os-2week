@@ -1,16 +1,6 @@
-Daily OS Project Update (2-week sprint)
-----------------------------------------
-Date: 2026-03-24
-Commit Count: 1
-Latest Hash: 7b1945d35ec55916b43d2cf978f4d2f6672759ef
-What Changed:
-- Improved `pci` / `lspci` command: Corrected Vendor/Device ID display logic and added Class/Subclass Code extraction.
-- Updated `msg_pci_header` to reflect the new output format (B:D.F Ven:Dev Class).
-- Version bumped to v0.1.22.
-
-What's Next:
-- Map common PCI Class Codes to human-readable strings.
-- Initial research and boilerplate for FAT12 filesystem (Stage 3).
-
-Push Status: Success (origin/main)
-Repo: https://github.com/surfsurfmasurf/os-2week
+commit_count: 1
+hashes: de0cc60
+what_changed: Extended PCI class decoding in stage2.asm (Multimedia, Communication, Serial Bus).
+next_steps: Start FAT12 root directory parsing; shell history refactoring.
+push_status: success
+repo_link: https://github.com/surfsurfmasurf/os-2week

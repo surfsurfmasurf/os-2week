@@ -317,6 +317,11 @@ process_command:
   call strcmp
   jc .do_history_mock
 
+  ; Command: 'fat' (mock FAT12 root dir)
+  mov di, cmd_fat
+  call strcmp
+  jc .do_fat_mock
+
   ; Command: 'uname'
   mov di, cmd_uname
   call strcmp
@@ -399,6 +404,13 @@ process_command:
 
 .do_history_mock:
   mov si, msg_history_mock
+  call print_string
+  ret
+
+.do_fat_mock:
+  mov si, msg_fat_header
+  call print_string
+  mov si, msg_fat_mock
   call print_string
   ret
 
@@ -1494,9 +1506,9 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.24 (Day 48: Extended PCI class decoding)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, uname, sleep <ticks>, poweroff", 13, 10, 0
-msg_ls_mock db "boot.bin stage2.bin README.txt test.txt bin/ backup/", 13, 10, 0
+msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & UI preparation)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_ls_mock db "BOOT.BIN STAGE2.BIN README.TXT TEST.TXT", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
 msg_du_mock db "512    ./boot.bin", 13, 10, "2048   ./stage2.bin", 13, 10, "128    ./README.txt", 13, 10, "0      ./test.txt", 13, 10, "4096   ./bin", 13, 10, "4096   ./backup", 13, 10, "10880  .", 13, 10, 0
@@ -1509,7 +1521,9 @@ msg_cd_ok db "Directory changed.", 13, 10, 0
 msg_cp_ok db "File copied.", 13, 10, 0
 msg_mv_ok db "File moved.", 13, 10, 0
 msg_history_mock db "1 ver", 13, 10, "2 help", 13, 10, "3 ls", 13, 10, "4 date", 13, 10, "5 history", 13, 10, 0
-msg_uname_mock db "os-2week 0.1.19-generic x86_16 Real Mode", 13, 10, 0
+msg_fat_header db "Filename    Ext Attr Size", 13, 10, 0
+msg_fat_mock db "BOOT        BIN 0x20 0x0200", 13, 10, "STAGE2      BIN 0x20 0x1000", 13, 10, 0
+msg_uname_mock db "os-2week 0.1.25-generic x86_16 Real Mode", 13, 10, 0
 msg_sleep_help db "Usage: sleep <hex-ticks> (18.2 ticks/sec)", 13, 10, 0
 msg_pwd_mock db "/", 13, 10, 0
 msg_whoami db "Root User (Admin)", 13, 10, 0
@@ -1604,6 +1618,7 @@ cmd_cd db "cd ", 0
 cmd_cp db "cp ", 0
 cmd_mv db "mv ", 0
 cmd_history db "history", 0
+cmd_fat db "fat", 0
 cmd_uname db "uname", 0
 cmd_sleep db "sleep ", 0
 cmd_lspci db "lspci", 0
