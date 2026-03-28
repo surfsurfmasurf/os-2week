@@ -1,6 +1,6 @@
 commit_count: 1
-hashes: de0cc60
-what_changed: Extended PCI class decoding in stage2.asm (Multimedia, Communication, Serial Bus).
-next_steps: Start FAT12 root directory parsing; shell history refactoring.
-push_status: success
+hashes: 0aa7367
+what_changed: Improved `ls` command UI with aligned columns and headers (Name/Size).
+next_steps: Start FAT12 root directory parsing; replace mocks with real disk reads.
+push_status: pending
 repo_link: https://github.com/surfsurfmasurf/os-2week
