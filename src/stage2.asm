@@ -348,6 +348,8 @@ process_command:
   ret
 
 .do_ls_mock:
+  mov si, msg_ls_header
+  call print_string
   mov si, msg_ls_mock
   call print_string
   ret
@@ -1508,7 +1510,8 @@ print_string:
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & UI preparation)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
-msg_ls_mock db "BOOT.BIN STAGE2.BIN README.TXT TEST.TXT", 13, 10, 0
+msg_ls_header db "Name        Size", 13, 10, 0
+msg_ls_mock db "BOOT    BIN  512", 13, 10, "STAGE2  BIN 4096", 13, 10, "README  TXT  128", 13, 10, "TEST    TXT    0", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
 msg_df_mock db "Filesystem     Size  Used Avail Use% Mounted on", 13, 10, "/dev/fd0       1.4M  512K  932K  35% /", 13, 10, 0
 msg_du_mock db "512    ./boot.bin", 13, 10, "2048   ./stage2.bin", 13, 10, "128    ./README.txt", 13, 10, "0      ./test.txt", 13, 10, "4096   ./bin", 13, 10, "4096   ./backup", 13, 10, "10880  .", 13, 10, 0
