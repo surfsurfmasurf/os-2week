@@ -92,6 +92,16 @@ process_command:
   call strcmp
   jc .do_reboot
 
+  ; Command: 'lba' (switch to LBA mode - mock)
+  mov di, cmd_lba
+  call strcmp
+  jc .do_lba_mock
+
+  ; Command: 'chs' (switch to CHS mode - mock)
+  mov di, cmd_chs
+  call strcmp
+  jc .do_chs_mock
+
   ; Command: 'help'
   mov di, cmd_help
   call strcmp
@@ -1152,6 +1162,16 @@ process_command:
   int 0x19
   ret
 
+.do_lba_mock:
+  mov si, msg_lba_ok
+  call print_string
+  ret
+
+.do_chs_mock:
+  mov si, msg_chs_ok
+  call print_string
+  ret
+
 .do_help:
   mov si, msg_help
   call print_string
@@ -1508,8 +1528,10 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & UI preparation)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & LBA Switcher)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_lba_ok db "Switched to LBA addressing mode (Mock).", 13, 10, 0
+msg_chs_ok db "Switched to CHS addressing mode (Mock).", 13, 10, 0
 msg_ls_header db "Name        Size", 13, 10, 0
 msg_ls_mock db "BOOT    BIN  512", 13, 10, "STAGE2  BIN 4096", 13, 10, "README  TXT  128", 13, 10, "TEST    TXT    0", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0
@@ -1577,6 +1599,8 @@ space db " ", 0
 cmd_ver db "ver", 0
 cmd_cls db "cls", 0
 cmd_reboot db "reboot", 0
+cmd_lba db "lba", 0
+cmd_chs db "chs", 0
 cmd_help db "help", 0
 cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
