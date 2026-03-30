@@ -1163,7 +1163,21 @@ process_command:
   ret
 
 .do_lba_mock:
+  ; Check if LBA is supported (INT 13h Extensions)
+  mov ah, 0x41
+  mov bx, 0x55AA
+  mov dl, 0x80 ; First hard drive (try 0x80)
+  int 0x13
+  jc .no_lba
+  cmp bx, 0xAA55
+  jne .no_lba
+
   mov si, msg_lba_ok
+  call print_string
+  ret
+
+.no_lba:
+  mov si, msg_lba_fail
   call print_string
   ret
 
@@ -1530,8 +1544,9 @@ print_string:
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & LBA Switcher)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
-msg_lba_ok db "Switched to LBA addressing mode (Mock).", 13, 10, 0
-msg_chs_ok db "Switched to CHS addressing mode (Mock).", 13, 10, 0
+msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
+msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
+msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
 msg_ls_header db "Name        Size", 13, 10, 0
 msg_ls_mock db "BOOT    BIN  512", 13, 10, "STAGE2  BIN 4096", 13, 10, "README  TXT  128", 13, 10, "TEST    TXT    0", 13, 10, 0
 msg_ps_mock db "PID TTY      STAT   TIME  COMMAND", 13, 10, "  1 tty1     S      0:01  init", 13, 10, "  2 tty1     R      0:00  shell", 13, 10, 0

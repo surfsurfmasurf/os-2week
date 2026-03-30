@@ -1,6 +1,5 @@
-commit_count: 1
-hashes: 0aa7367
-what_changed: Improved `ls` command UI with aligned columns and headers (Name/Size).
-next_steps: Start FAT12 root directory parsing; replace mocks with real disk reads.
-push_status: pending
-repo_link: https://github.com/surfsurfmasurf/os-2week
+Commit Count: 1
+Hashes: f2a10f236fdd7e9a30739de17946b7db33d20306
+What Changed: Added mock 'lba' and 'chs' commands to stage2 shell; updated daily log.
+What's Next: Actual LBA support and FAT12 root directory parsing.
+Push Status: Pending
