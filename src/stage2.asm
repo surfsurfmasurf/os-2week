@@ -581,6 +581,9 @@ process_command:
   call parse_hex_word
   jc .read_help
   
+  cmp [lba_supported], byte 1
+  je .read_lba
+
   call lba_to_chs
 
   ; Target buffer 0x2000:0x0000
@@ -592,6 +595,25 @@ process_command:
   int 0x13
   jc .read_err
 
+  mov si, msg_read_ok
+  call print_string
+  ret
+
+.read_lba:
+  ; Use AH=42h (Extended Read)
+  ; AX = LBA from parse_hex_word
+  mov [dap_lba_low], ax
+  mov [dap_lba_high], word 0
+  mov [dap_segment], word 0x2000
+  mov [dap_offset], word 0x0000
+  mov [dap_count], word 1
+  
+  mov ah, 0x42
+  mov dl, 0x80 ; drive 0x80
+  mov si, dap
+  int 0x13
+  jc .read_err
+  
   mov si, msg_read_ok
   call print_string
   ret
@@ -1172,16 +1194,23 @@ process_command:
   cmp bx, 0xAA55
   jne .no_lba
 
+  ; Extension found - bit 0 in CX = device access using packet
+  test cl, 1
+  jz .no_lba
+
+  mov [lba_supported], byte 1
   mov si, msg_lba_ok
   call print_string
   ret
 
 .no_lba:
+  mov [lba_supported], byte 0
   mov si, msg_lba_fail
   call print_string
   ret
 
 .do_chs_mock:
+  mov [lba_supported], byte 0
   mov si, msg_chs_ok
   call print_string
   ret
@@ -1542,7 +1571,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.25 (Day 49: FAT12 Mockup & LBA Switcher)", 13, 10, 0
+msg_ver db "os-2week v0.1.26 (Day 50: BIOS LBA Read Support)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
@@ -1672,3 +1701,15 @@ mmap_entry times 24 db 0
 vendor_id times 13 db 0
 text_attr db 0x07 ; Default Light Gray on Black
 current_lba dw 0x0000
+lba_supported db 0x00
+
+; Disk Address Packet (DAP) for LBA
+dap:
+  dap_size db 0x10
+  dap_reserved db 0x00
+  dap_count dw 1
+  dap_offset dw 0x0000
+  dap_segment dw 0x2000
+  dap_lba_low dw 0x0000
+  dap_lba_high dw 0x0000
+  dap_lba_upper dw 0x0000, 0x0000 ; 8 bytes total for LBA
