@@ -212,6 +212,11 @@ process_command:
   call strcmp_prefix
   jc .do_cat
 
+  ; Command: 'hex' (hex dump sector)
+  mov di, cmd_hex
+  call strcmp_prefix
+  jc .do_hex
+
   ; Command: 'type' (alias for cat)
   mov di, cmd_type
   call strcmp_prefix
@@ -534,6 +539,82 @@ process_command:
 
 .cat_help:
   mov si, msg_cat_help
+  call print_string
+  ret
+
+.do_hex:
+  ; Usage: hex <lba_hex>
+  ; Dumps entire sector in hex/ascii
+  add si, 4
+  mov al, [si]
+  test al, al
+  jz .hex_help
+
+  call parse_hex_word
+  jc .hex_help
+  
+  ; Call internal read (into 0x2000:0000)
+  ; Note: we reuse .do_read's logic or just call int 13h again
+  call lba_to_chs
+  mov ax, 0x2000
+  mov es, ax
+  xor bx, bx
+  mov ax, 0x0201
+  int 0x13
+  jc .read_err
+
+  ; Print 512 bytes
+  mov si, 0
+  mov ax, 0x2000
+  mov ds, ax
+  mov cx, 32 ; 32 lines of 16 bytes
+.hex_line_loop:
+  push cx
+  mov cx, 16
+.hex_byte_loop:
+  lodsb
+  call print_hex_byte
+  mov al, ' '
+  mov ah, 0x0E
+  int 0x10
+  loop .hex_byte_loop
+  
+  ; Print ASCII part
+  sub si, 16
+  mov al, '|'
+  int 0x10
+  mov cx, 16
+.hex_ascii_loop:
+  lodsb
+  cmp al, 32
+  jl .hex_dot
+  cmp al, 126
+  jg .hex_dot
+  jmp .hex_ascii_print
+.hex_dot:
+  mov al, '.'
+.hex_ascii_print:
+  int 0x10
+  loop .hex_ascii_loop
+  mov al, '|'
+  int 0x10
+
+  mov ax, 0x0000
+  mov ds, ax
+  mov si, newline
+  call print_string
+  mov ax, 0x2000
+  mov ds, ax
+
+  pop cx
+  loop .hex_line_loop
+
+  mov ax, 0x0000
+  mov ds, ax
+  ret
+
+.hex_help:
+  mov si, msg_hex_help
   call print_string
   ret
 
@@ -1572,7 +1653,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.26 (Day 50: BIOS LBA Read Support)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -1599,6 +1680,7 @@ msg_whoami db "Root User (Admin)", 13, 10, 0
 msg_su_ok db "Switched user (mock).", 13, 10, 0
 msg_sudo_ok db "[sudo] password for root: ", 13, 10, "Access granted (mock).", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
+msg_hex_help db "Usage: hex <lba-hex> - hex dump sector", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
 msg_read_ok db "Read Success to 2000:0000", 13, 10, 0
 msg_read_err db "Read Error: code 0x", 0
@@ -1665,6 +1747,7 @@ cmd_halt db "halt", 0
 cmd_rand db "rand", 0
 cmd_ls db "ls", 0
 cmd_cat db "cat ", 0
+cmd_hex db "hex ", 0
 cmd_edit db "edit ", 0
 cmd_read db "read ", 0
 cmd_write db "write ", 0

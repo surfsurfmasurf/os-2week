@@ -1,6 +1,5 @@
-Commit Count: 1
-Hashes: 8b338f6
-What Changed: Replaced 'lba' mock with real BIOS INT 13h Extensions check; added daily log.
-What's Next: Actual LBA sector read and FAT12 parsing.
-Push Status: Pending
-Repo Link: https://github.com/surfsurfmasurf/os-2week
+Commit count: 1
+Hashes: 8f8f0b4
+What changed: Implemented LBA read support (AH=42h) in the stage2 shell, allowing the 'read' command to use BIOS extensions if available. Updated 'ver' to 0.1.26.
+What's next: Implement FAT12 table parsing using LBA.
+Push status: Success.
