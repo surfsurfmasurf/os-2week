@@ -1,5 +1,10 @@
-Commit count: 1
-Hashes: 8f8f0b4
-What changed: Implemented LBA read support (AH=42h) in the stage2 shell, allowing the 'read' command to use BIOS extensions if available. Updated 'ver' to 0.1.26.
-What's next: Implement FAT12 table parsing using LBA.
-Push status: Success.
+Date: 2026-04-02
+Commits: 1 (Total: 64)
+Latest Hash: 41d7f22
+Changes:
+- Implemented `feat` command in `stage2.asm` for CPU feature detection (FPU, SSE, NX).
+- Updated `ver` to 0.1.27.
+- Created daily log for 2026-04-02.
+Next: Begin real FAT12 root directory parsing for `ls` and `cat` commands.
+Push Status: Success (main -> main)
+Repo: https://github.com/surfsurfmasurf/os-2week

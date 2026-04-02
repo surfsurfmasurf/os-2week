@@ -122,6 +122,11 @@ process_command:
   call strcmp
   jc .do_cpu
 
+  ; Command: 'feat'
+  mov di, cmd_feat
+  call strcmp
+  jc .do_feat
+
   ; Command: 'uptime'
   mov di, cmd_uptime
   call strcmp
@@ -1372,6 +1377,44 @@ process_command:
   call print_string
   ret
 
+.do_feat:
+  ; Check CPU features via CPUID EAX=1
+  mov eax, 1
+  cpuid
+  ; EDX contains features
+  push edx
+  
+  ; FPU (Bit 0)
+  test edx, 1
+  jz .no_fpu
+  mov si, msg_feat_fpu
+  call print_string
+.no_fpu:
+  ; SSE (Bit 25)
+  pop edx
+  push edx
+  test edx, 1 << 25
+  jz .no_sse
+  mov si, msg_feat_sse
+  call print_string
+.no_sse:
+  ; NX (EAX=0x80000001, EDX Bit 20)
+  mov eax, 0x80000000
+  cpuid
+  cmp eax, 0x80000001
+  jb .no_nx
+  mov eax, 0x80000001
+  cpuid
+  test edx, 1 << 20
+  jz .no_nx
+  mov si, msg_feat_nx
+  call print_string
+.no_nx:
+  pop edx
+  mov si, newline
+  call print_string
+  ret
+
 .do_uptime:
   ; Read BIOS timer tick (0040h:006Ch)
   ; 18.2 ticks per second.
@@ -1652,8 +1695,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.26 (Day 50: BIOS LBA Read Support)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_ver db "os-2week v0.1.27 (Day 51: CPU Feature Detection (FPU/SSE/NX))", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -1714,6 +1757,9 @@ msg_mem_conv db "Conventional Memory: ", 0
 msg_kb db " KB", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
+msg_feat_fpu db "FPU ", 0
+msg_feat_sse db "SSE ", 0
+msg_feat_nx db "NX ", 0
 msg_uptime db "Uptime: ", 0
 msg_seconds db " seconds", 13, 10, 0
 msg_poweroff_fail db "Poweroff not supported on this platform.", 13, 10, 0
@@ -1731,6 +1777,7 @@ cmd_help db "help", 0
 cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
 cmd_cpu db "cpu", 0
+cmd_feat db "feat", 0
 cmd_uptime db "uptime", 0
 cmd_time db "time", 0
 cmd_date db "date", 0
