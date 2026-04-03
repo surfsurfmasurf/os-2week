@@ -127,6 +127,11 @@ process_command:
   call strcmp
   jc .do_feat
 
+  ; Command: 'xfeat'
+  mov di, cmd_xfeat
+  call strcmp
+  jc .do_xfeat
+
   ; Command: 'uptime'
   mov di, cmd_uptime
   call strcmp
@@ -1390,6 +1395,14 @@ process_command:
   mov si, msg_feat_fpu
   call print_string
 .no_fpu:
+  ; PAE (Bit 6)
+  pop edx
+  push edx
+  test edx, 1 << 6
+  jz .no_pae
+  mov si, msg_feat_pae
+  call print_string
+.no_pae:
   ; SSE (Bit 25)
   pop edx
   push edx
@@ -1412,6 +1425,59 @@ process_command:
 .no_nx:
   pop edx
   mov si, newline
+  call print_string
+  ret
+
+.do_xfeat:
+  ; Check extended features via CPUID EAX=7, ECX=0
+  mov eax, 0
+  cpuid
+  cmp eax, 7
+  jb .no_xfeat
+  
+  mov eax, 7
+  xor ecx, ecx
+  cpuid
+  ; EBX contains many extended features
+  push ebx
+  
+  ; FSGSBASE (Bit 0)
+  test ebx, 1
+  jz .no_fsgs
+  mov si, msg_feat_fsgs
+  call print_string
+.no_fsgs:
+  ; BMI1 (Bit 3)
+  pop ebx
+  push ebx
+  test ebx, 1 << 3
+  jz .no_bmi1
+  mov si, msg_feat_bmi1
+  call print_string
+.no_bmi1:
+  ; AVX2 (Bit 5)
+  pop ebx
+  push ebx
+  test ebx, 1 << 5
+  jz .no_avx2
+  mov si, msg_feat_avx2
+  call print_string
+.no_avx2:
+  ; BMI2 (Bit 8)
+  pop ebx
+  push ebx
+  test ebx, 1 << 8
+  jz .no_bmi2
+  mov si, msg_feat_bmi2
+  call print_string
+.no_bmi2:
+  pop ebx
+  mov si, newline
+  call print_string
+  ret
+
+.no_xfeat:
+  mov si, msg_xfeat_none
   call print_string
   ret
 
@@ -1695,8 +1761,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.27 (Day 51: CPU Feature Detection (FPU/SSE/NX))", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_ver db "os-2week v0.1.28 (Day 52: CPU Extended Features & PAE Detection)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -1758,8 +1824,14 @@ msg_kb db " KB", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_feat_fpu db "FPU ", 0
+msg_feat_pae db "PAE ", 0
 msg_feat_sse db "SSE ", 0
 msg_feat_nx db "NX ", 0
+msg_feat_fsgs db "FSGS ", 0
+msg_feat_bmi1 db "BMI1 ", 0
+msg_feat_bmi2 db "BMI2 ", 0
+msg_feat_avx2 db "AVX2 ", 0
+msg_xfeat_none db "No extended features.", 13, 10, 0
 msg_uptime db "Uptime: ", 0
 msg_seconds db " seconds", 13, 10, 0
 msg_poweroff_fail db "Poweroff not supported on this platform.", 13, 10, 0
@@ -1778,6 +1850,7 @@ cmd_echo db "echo ", 0
 cmd_mmap db "mmap", 0
 cmd_cpu db "cpu", 0
 cmd_feat db "feat", 0
+cmd_xfeat db "xfeat", 0
 cmd_uptime db "uptime", 0
 cmd_time db "time", 0
 cmd_date db "date", 0
