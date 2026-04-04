@@ -1,10 +1,5 @@
-Date: 2026-04-02
-Commits: 1 (Total: 64)
-Latest Hash: 41d7f22
-Changes:
-- Implemented `feat` command in `stage2.asm` for CPU feature detection (FPU, SSE, NX).
-- Updated `ver` to 0.1.27.
-- Created daily log for 2026-04-02.
-Next: Begin real FAT12 root directory parsing for `ls` and `cat` commands.
-Push Status: Success (main -> main)
-Repo: https://github.com/surfsurfmasurf/os-2week
+Commit count: 2
+Hashes: 5eb3188, 8b8fe0f
+What changed: Added 'xfeat' command for extended CPU feature detection (AVX2, BMI1/2, FSGSBASE) and PAE bit detection to 'feat'. Updated daily log.
+What's next: Real FAT12 parsing for 'ls'.
+Push status: Success.
