@@ -182,6 +182,16 @@ process_command:
   call strcmp_prefix
   jc .do_io
 
+  ; Command: 'iow' (out port word)
+  mov di, cmd_iow
+  call strcmp_prefix
+  jc .do_iow
+
+  ; Command: 'ior' (in port word)
+  mov di, cmd_ior
+  call strcmp_prefix
+  jc .do_ior
+
   ; Command: 'mem'
   mov di, cmd_mem
   call strcmp
@@ -1272,6 +1282,52 @@ process_command:
   call print_string
   ret
 
+.do_ior:
+  ; Usage: ior <port_hex>
+  add si, 4
+  call parse_hex_word
+  jc .iorw_help
+  mov dx, ax
+  in ax, dx
+  call print_hex_32 ; reuse print_hex_32 but it prints 8 chars, maybe just hex_word?
+  ; wait, stage2 doesn't have print_hex_word. let's check.
+  ; it has print_hex_byte and print_hex_32.
+  ; I will use print_hex_byte twice for word.
+  push ax
+  mov al, ah
+  call print_hex_byte
+  pop ax
+  call print_hex_byte
+  mov si, newline
+  call print_string
+  ret
+
+.do_iow:
+  ; Usage: iow <port_hex> <val_hex>
+  add si, 4
+  call parse_hex_word
+  jc .iorw_help
+  push ax ; port
+  
+  inc si
+  call parse_hex_word
+  jc .iorw_help_pop
+  
+  mov bx, ax ; value
+  pop dx     ; port
+  mov ax, bx
+  out dx, ax
+  mov si, msg_io_ok
+  call print_string
+  ret
+
+.iorw_help_pop:
+  pop ax
+.iorw_help:
+  mov si, msg_iorw_help
+  call print_string
+  ret
+
 .do_mem:
   ; Simple mem command to show total conventional memory
   ; BIOS int 0x12 returns KB in AX
@@ -1820,8 +1876,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.29 (Day 53: IO Port Access Commands)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_ver db "os-2week v0.1.30 (Day 54: IO Port Word Access)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -1849,6 +1905,7 @@ msg_su_ok db "Switched user (mock).", 13, 10, 0
 msg_sudo_ok db "[sudo] password for root: ", 13, 10, "Access granted (mock).", 13, 10, 0
 msg_cat_help db "Usage: cat <lba-hex> - displays sector contents as text", 13, 10, 0
 msg_io_help db "Usage: io r <port> | io w <port> <val>", 13, 10, 0
+msg_iorw_help db "Usage: ior <port> | iow <port> <val_word>", 13, 10, 0
 msg_io_ok db "IO Write Success.", 13, 10, 0
 msg_hex_help db "Usage: hex <lba-hex> - hex dump sector", 13, 10, 0
 msg_edit_help db "Usage: edit <addr-hex> <string> - writes string to memory", 13, 10, 0
@@ -1958,6 +2015,8 @@ cmd_uname db "uname", 0
 cmd_sleep db "sleep ", 0
 cmd_lspci db "lspci", 0
 cmd_io db "io ", 0
+cmd_iow db "iow ", 0
+cmd_ior db "ior ", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer

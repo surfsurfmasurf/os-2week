@@ -1,5 +1,5 @@
-Commit count: 2
-Hashes: 5eb3188, 8b8fe0f
-What changed: Added 'xfeat' command for extended CPU feature detection (AVX2, BMI1/2, FSGSBASE) and PAE bit detection to 'feat'. Updated daily log.
-What's next: Real FAT12 parsing for 'ls'.
-Push status: Success.
+Commit Count: 1
+Hashes: 6fe4aeb
+What Changed: Added 'io' command for direct port access in stage2 (r/w byte). Updated version to 0.1.29. Created daily log.
+What's Next: FAT12 root directory parsing for 'ls'.
+Push Status: Success (8b8fe0f..6fe4aeb)
