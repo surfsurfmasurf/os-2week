@@ -237,6 +237,16 @@ process_command:
   call strcmp_prefix
   jc .do_cat
 
+  ; Command: 'touch' (mock file creation)
+  mov di, cmd_touch
+  call strcmp_prefix
+  jc .do_touch_mock
+
+  ; Command: 'rm' (mock file removal)
+  mov di, cmd_rm
+  call strcmp_prefix
+  jc .do_rm_mock
+
   ; Command: 'hex' (hex dump sector)
   mov di, cmd_hex
   call strcmp_prefix
@@ -271,6 +281,31 @@ process_command:
   mov di, cmd_seek
   call strcmp_prefix
   jc .do_seek
+
+  ; Command: 'mkdir' (mock directory creation)
+  mov di, cmd_mkdir
+  call strcmp_prefix
+  jc .do_mkdir_mock
+
+  ; Command: 'rmdir' (mock directory removal)
+  mov di, cmd_rmdir
+  call strcmp_prefix
+  jc .do_rmdir_mock
+
+  ; Command: 'cd' (mock directory change)
+  mov di, cmd_cd
+  call strcmp_prefix
+  jc .do_cd_mock
+
+  ; Command: 'cp' (mock file copy)
+  mov di, cmd_cp
+  call strcmp_prefix
+  jc .do_cp_mock
+
+  ; Command: 'mv' (mock file move)
+  mov di, cmd_mv
+  call strcmp_prefix
+  jc .do_mv_mock
 
   ; Command: 'whoami'
   mov di, cmd_whoami
@@ -372,10 +407,70 @@ process_command:
   call strcmp_prefix
   jc .do_sleep_mock
 
+  ; Command: 'pwd' (print working directory mock)
+  mov di, cmd_pwd
+  call strcmp
+  jc .do_pwd_mock
+
+  ; Command: 'uname'
+  mov di, cmd_uname
+  call strcmp
+  jc .do_uname_mock
+
+  ; Command: 'df' (disk space mock)
+  mov di, cmd_df
+  call strcmp
+  jc .do_df_mock
+
+  ; Command: 'du' (disk usage mock)
+  mov di, cmd_du
+  call strcmp
+  jc .do_du_mock
+
+  ; Command: 'history' (mock shell history)
+  mov di, cmd_history
+  call strcmp
+  jc .do_history_mock
+
+  ; Command: 'sleep'
+  mov di, cmd_sleep
+  call strcmp_prefix
+  jc .do_sleep_mock
+
   ; Command: 'clear' (alias for cls)
   mov di, cmd_clear
   call strcmp
   jc .do_cls
+
+  ; Command: 'su' (mock user switch)
+  mov di, cmd_su
+  call strcmp_prefix
+  jc .do_su_mock
+
+  ; Command: 'sudo' (mock sudo)
+  mov di, cmd_sudo
+  call strcmp_prefix
+  jc .do_sudo_mock
+
+  ; Command: 'ps' (list processes - mock)
+  mov di, cmd_ps
+  call strcmp
+  jc .do_ps_mock
+
+  ; Command: 'kill' (mock kill)
+  mov di, cmd_kill
+  call strcmp_prefix
+  jc .do_kill_mock
+
+  ; Command: 'free' (memory usage)
+  mov di, cmd_free
+  call strcmp
+  jc .do_mem
+
+  ; Command: 'fat' (mock FAT12 root dir)
+  mov di, cmd_fat
+  call strcmp
+  jc .do_fat_mock
 
   ; Unknown command
   mov si, msg_unknown
