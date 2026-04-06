@@ -1,5 +1,5 @@
-Commit Count: 1
-Hashes: 6fe4aeb
-What Changed: Added 'io' command for direct port access in stage2 (r/w byte). Updated version to 0.1.29. Created daily log.
-What's Next: FAT12 root directory parsing for 'ls'.
-Push Status: Success (8b8fe0f..6fe4aeb)
+commit count: 1
+hashes: c361c56
+what changed: Added ior and iow commands for word-sized port access in stage2.asm. Updated daily log.
+what's next: FAT12 root directory parsing for ls command.
+push status: success
