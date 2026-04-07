@@ -192,6 +192,11 @@ process_command:
   call strcmp_prefix
   jc .do_ior
 
+  ; Command: 'cpuid' (alias for cpu)
+  mov di, cmd_cpuid
+  call strcmp
+  jc .do_cpu
+
   ; Command: 'mem'
   mov di, cmd_mem
   call strcmp
@@ -1971,7 +1976,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.30 (Day 54: IO Port Word Access)", 13, 10, 0
+msg_ver db "os-2week v0.1.31 (Day 55: Command Table Cleanups)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
@@ -2109,6 +2114,7 @@ cmd_fat db "fat", 0
 cmd_uname db "uname", 0
 cmd_sleep db "sleep ", 0
 cmd_lspci db "lspci", 0
+cmd_cpuid db "cpuid", 0
 cmd_io db "io ", 0
 cmd_iow db "iow ", 0
 cmd_ior db "ior ", 0
