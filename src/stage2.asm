@@ -472,6 +472,11 @@ process_command:
   call strcmp
   jc .do_mem
 
+  ; Command: 'mdelay' (busy loop delay)
+  mov di, cmd_mdelay
+  call strcmp_prefix
+  jc .do_mdelay
+
   ; Command: 'fat' (mock FAT12 root dir)
   mov di, cmd_fat
   call strcmp
@@ -1447,6 +1452,33 @@ process_command:
   call print_string
   ret
 
+.do_mdelay:
+  ; Usage: mdelay <ms_hex>
+  ; Simple millisecond delay using BIOS Wait (INT 15h, AH=86h)
+  add si, 7
+  mov al, [si]
+  test al, al
+  jz .mdelay_help
+  call parse_hex_word
+  jc .mdelay_help
+  
+  ; Convert ms to microseconds (multiply by 1000)
+  ; AX = ms
+  mov ecx, 1000
+  mul ecx ; EAX = microseconds
+  
+  mov edx, eax
+  mov ecx, eax
+  shr ecx, 16 ; CX:DX = microseconds
+  mov ah, 0x86
+  int 0x15
+  ret
+
+.mdelay_help:
+  mov si, msg_mdelay_help
+  call print_string
+  ret
+
 .do_beep:
   ; PC speaker beep
   ; Frequency = 1193180 / frequency_hz
@@ -1977,7 +2009,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.31 (Day 55: Command Table Cleanups)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, poweroff", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -2019,6 +2051,7 @@ msg_fill_ok db "Buffer filled.", 13, 10, 0
 msg_fill_help db "Usage: fill <hex-byte> - fills transfer buffer (512b) with value", 13, 10, 0
 msg_seek_ok db "Head moved to sector.", 13, 10, 0
 msg_seek_help db "Usage: seek <lba-hex> - mocks a disk seek operation", 13, 10, 0
+msg_mdelay_help db "Usage: mdelay <ms_hex> - simple BIOS delay loop", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -2118,6 +2151,7 @@ cmd_cpuid db "cpuid", 0
 cmd_io db "io ", 0
 cmd_iow db "iow ", 0
 cmd_ior db "ior ", 0
+cmd_mdelay db "mdelay ", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer
