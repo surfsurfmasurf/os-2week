@@ -1,5 +1,5 @@
-commit count: 1
-hashes: c361c56
-what changed: Added ior and iow commands for word-sized port access in stage2.asm. Updated daily log.
-what's next: FAT12 root directory parsing for ls command.
-push status: success
+Commit count: 1
+Hash: c751085
+What changed: Added 'mdelay' command to stage2.asm using BIOS INT 15h AH=86h for millisecond waits. Updated daily log and help strings.
+What's next: Begin implementing a basic FAT12 directory parser for a functional 'ls' command.
+Push status: Success.

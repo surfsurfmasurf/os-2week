@@ -482,6 +482,11 @@ process_command:
   call strcmp
   jc .do_fat_mock
 
+  ; Command: 'kbd'
+  mov di, cmd_kbd
+  call strcmp
+  jc .do_kbd
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -1474,6 +1479,40 @@ process_command:
   int 0x15
   ret
 
+.do_kbd:
+  ; Show keyboard lock states using BIOS Data Area 0040:0017
+  mov si, msg_kbd_status
+  call print_string
+  
+  push es
+  mov ax, 0x0040
+  mov es, ax
+  mov al, [es:0x0017]
+  pop es
+  
+  push ax
+  test al, 0x10 ; Scroll Lock
+  jz .no_scr
+  mov si, msg_scr_lock
+  call print_string
+.no_scr:
+  pop ax
+  push ax
+  test al, 0x20 ; Num Lock
+  jz .no_num
+  mov si, msg_num_lock
+  call print_string
+.no_num:
+  pop ax
+  test al, 0x40 ; Caps Lock
+  jz .no_caps
+  mov si, msg_caps_lock
+  call print_string
+.no_caps:
+  mov si, newline
+  call print_string
+  ret
+
 .mdelay_help:
   mov si, msg_mdelay_help
   call print_string
@@ -2008,8 +2047,8 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.31 (Day 55: Command Table Cleanups)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff", 13, 10, 0
+msg_ver db "os-2week v0.1.32 (Day 56: Keyboard LEDs and Lock state check)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -2052,6 +2091,10 @@ msg_fill_help db "Usage: fill <hex-byte> - fills transfer buffer (512b) with val
 msg_seek_ok db "Head moved to sector.", 13, 10, 0
 msg_seek_help db "Usage: seek <lba-hex> - mocks a disk seek operation", 13, 10, 0
 msg_mdelay_help db "Usage: mdelay <ms_hex> - simple BIOS delay loop", 13, 10, 0
+msg_kbd_status db "Kbd Lock State: ", 0
+msg_scr_lock db "Scroll ", 0
+msg_num_lock db "Num ", 0
+msg_caps_lock db "Caps ", 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -2152,6 +2195,7 @@ cmd_io db "io ", 0
 cmd_iow db "iow ", 0
 cmd_ior db "ior ", 0
 cmd_mdelay db "mdelay ", 0
+cmd_kbd db "kbd", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer
