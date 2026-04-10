@@ -487,6 +487,11 @@ process_command:
   call strcmp
   jc .do_kbd
 
+  ; Command: 'vga'
+  mov di, cmd_vga
+  call strcmp
+  jc .do_vga
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -494,6 +499,28 @@ process_command:
 
 .do_ver:
   mov si, msg_ver
+  call print_string
+  ret
+
+.do_vga:
+  ; Read current VGA mode using BIOS INT 10h AH=0Fh
+  mov ah, 0x0F
+  int 0x10 ; returns AL=mode, AH=cols, BH=active page
+  
+  push ax
+  mov si, msg_vga_mode
+  call print_string
+  pop ax
+  push ax
+  mov al, ah ; columns
+  call print_decimal_32 ; reuse 32-bit decimal helper
+  mov si, msg_vga_cols
+  call print_string
+  
+  pop ax
+  and eax, 0xFF ; mode
+  call print_hex_byte
+  mov si, newline
   call print_string
   ret
 
@@ -2048,7 +2075,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.32 (Day 56: Keyboard LEDs and Lock state check)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -2095,6 +2122,8 @@ msg_kbd_status db "Kbd Lock State: ", 0
 msg_scr_lock db "Scroll ", 0
 msg_num_lock db "Num ", 0
 msg_caps_lock db "Caps ", 0
+msg_vga_mode db "VGA Mode: 0x", 0
+msg_vga_cols db " Cols: ", 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
 msg_panic db "KERNEL PANIC: Unhandled Exception", 13, 10, 0
@@ -2196,6 +2225,7 @@ cmd_iow db "iow ", 0
 cmd_ior db "ior ", 0
 cmd_mdelay db "mdelay ", 0
 cmd_kbd db "kbd", 0
+cmd_vga db "vga", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer
