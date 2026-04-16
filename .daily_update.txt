@@ -1,5 +1,5 @@
-Commit count: 1
-Hash: c751085
-What changed: Added 'mdelay' command to stage2.asm using BIOS INT 15h AH=86h for millisecond waits. Updated daily log and help strings.
-What's next: Begin implementing a basic FAT12 directory parser for a functional 'ls' command.
-Push status: Success.
+dc68f5654b8325b0b7b2d1595d08ff94cb96a6f1
+Commits: 1
+Changes: Added setmode command to stage2
+Next: Basic VGA graphics primitives (pixels, lines) in mode 13h
+Push: Success

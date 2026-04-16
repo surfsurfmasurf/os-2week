@@ -525,6 +525,12 @@ process_command:
   pop ax
   mov al, ah ; columns
   call print_decimal_32 ; reuse 32-bit decimal helper
+  
+  mov si, msg_vga_page
+  call print_string
+  mov al, bh ; active page
+  call print_decimal_32
+  
   mov si, newline
   call print_string
   ret
@@ -2097,7 +2103,7 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.32 (Day 56: Keyboard LEDs and Lock state check)", 13, 10, 0
+msg_ver db "os-2week v0.1.33 (Day 57: Enhanced VGA info: active page reporting)", 13, 10, 0
 msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>", 13, 10, 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
@@ -2147,6 +2153,7 @@ msg_num_lock db "Num ", 0
 msg_caps_lock db "Caps ", 0
 msg_vga_mode db "VGA Mode: 0x", 0
 msg_vga_cols db " Cols: ", 0
+msg_vga_page db " Page: ", 0
 msg_setmode_help db "Usage: setmode <hex-mode> (e.g. 03, 13, 01)", 13, 10, 0
 msg_unknown db "Unknown command. Type 'help'.", 13, 10, 0
 msg_halt db "System halted.", 13, 10, 0
