@@ -172,6 +172,16 @@ process_command:
   call strcmp
   jc .do_pci
 
+  ; Command: 'peek_w'
+  mov di, cmd_peek_w
+  call strcmp_prefix
+  jc .do_peek_w
+
+  ; Command: 'poke_w'
+  mov di, cmd_poke_w
+  call strcmp_prefix
+  jc .do_poke_w
+
   ; Command: 'lspci' (alias for pci)
   mov di, cmd_lspci
   call strcmp
@@ -1194,6 +1204,32 @@ process_command:
   call print_string
   ret
 
+.do_peek_w:
+  ; Peek 1 word: 'peek_w XXXX'
+  add si, 7
+  mov al, [si]
+  test al, al
+  jz .peek_w_help
+
+  call parse_hex_word
+  jc .peek_w_help
+
+  mov bx, ax
+  mov ax, [bx]
+  push ax
+  mov al, ah
+  call print_hex_byte
+  pop ax
+  call print_hex_byte
+  mov si, newline
+  call print_string
+  ret
+
+.peek_w_help:
+  mov si, msg_peek_w_help
+  call print_string
+  ret
+
 .peek_help:
   mov si, msg_peek_help
   call print_string
@@ -1230,6 +1266,40 @@ process_command:
   mov [di], bl
 
   mov si, msg_poke_ok
+  call print_string
+  ret
+
+.do_poke_w:
+  ; Poke 1 word: 'poke_w XXXX YYYY'
+  add si, 7
+  mov al, [si]
+  test al, al
+  jz .poke_w_help
+
+  call parse_hex_word
+  jc .poke_w_help
+  push ax ; Save address
+
+  mov al, [si]
+  cmp al, ' '
+  jne .poke_w_err_pop
+
+  inc si
+  call parse_hex_word
+  jc .poke_w_err_pop
+
+  mov bx, ax ; value
+  pop di     ; address
+  mov [di], bx
+
+  mov si, msg_poke_ok
+  call print_string
+  ret
+
+.poke_w_err_pop:
+  pop ax
+.poke_w_help:
+  mov si, msg_poke_w_help
   call print_string
   ret
 
@@ -2162,7 +2232,9 @@ msg_color_set db "Color attribute updated.", 13, 10, 0
 msg_color_help db "Usage: color <hex-digit> (e.g., color A for light green)", 13, 10, 0
 msg_dump_help db "Usage: dump <4-digit-hex> (e.g., dump 1000)", 13, 10, 0
 msg_peek_help db "Usage: peek <4-digit-hex> (e.g., peek 0500)", 13, 10, 0
+msg_peek_w_help db "Usage: peek_w <4-digit-hex> (e.g., peek_w 0500)", 13, 10, 0
 msg_poke_help db "Usage: poke <4-digit-hex> <2-digit-hex> (e.g., poke 0500 FF)", 13, 10, 0
+msg_poke_w_help db "Usage: poke_w <4-digit-hex> <4-digit-hex> (e.g., poke_w 0500 FFFF)", 13, 10, 0
 msg_poke_ok db "Memory updated.", 13, 10, 0
 msg_pci_header db "B:D.F Ven:Dev Class", 13, 10, 0
 msg_pci_storage db "Mass Storage", 0
@@ -2212,6 +2284,8 @@ cmd_color db "color ", 0
 cmd_dump db "dump ", 0
 cmd_peek db "peek ", 0
 cmd_poke db "poke ", 0
+cmd_peek_w db "peek_w ", 0
+cmd_poke_w db "poke_w ", 0
 cmd_pci db "pci", 0
 cmd_mem db "mem", 0
 cmd_beep db "beep", 0
