@@ -507,6 +507,11 @@ process_command:
   call strcmp_prefix
   jc .do_setmode
 
+  ; Command: 'gdt'
+  mov di, cmd_gdt
+  call strcmp
+  jc .do_gdt
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
@@ -514,6 +519,17 @@ process_command:
 
 .do_ver:
   mov si, msg_ver
+  call print_string
+  ret
+
+.do_gdt:
+  ; Print GDT address
+  mov si, msg_gdt_info
+  call print_string
+  sgdt [gdt_ptr_val]
+  mov eax, [gdt_ptr_val + 2]
+  call print_hex_32
+  mov si, newline
   call print_string
   ret
 
@@ -2173,8 +2189,9 @@ print_string:
 ; --- data ---
 
 msg db "os-2week: stage2 ok", 13, 10, 0
-msg_ver db "os-2week v0.1.33 (Day 57: Enhanced VGA info: active page reporting)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>", 13, 10, 0
+msg_ver db "os-2week v0.1.34 (Day 58: GDT Inspection)", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>, gdt", 13, 10, 0
+msg_gdt_info db "GDT Base: 0x", 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
 msg_chs_ok db "Reverting to Standard CHS Addressing.", 13, 10, 0
@@ -2332,6 +2349,7 @@ cmd_mdelay db "mdelay ", 0
 cmd_kbd db "kbd", 0
 cmd_vga db "vga", 0
 cmd_setmode db "setmode ", 0
+cmd_gdt db "gdt", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer
@@ -2341,6 +2359,9 @@ vendor_id times 13 db 0
 text_attr db 0x07 ; Default Light Gray on Black
 current_lba dw 0x0000
 lba_supported db 0x00
+gdt_ptr_val:
+  limit dw 0
+  base  dd 0
 
 ; Disk Address Packet (DAP) for LBA
 dap:
