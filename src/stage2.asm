@@ -512,6 +512,11 @@ process_command:
   call strcmp
   jc .do_gdt
 
+  ; Command: 'exit'
+  mov di, cmd_exit
+  call strcmp
+  jc .do_reboot
+
   ; Unknown command
   mov si, msg_unknown
   call print_string
