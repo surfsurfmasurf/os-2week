@@ -527,8 +527,48 @@ process_command:
   call strcmp
   jc .do_rtc
 
+  ; Command: 'rtcw' (write RTC register)
+  mov di, cmd_rtcw
+  call strcmp_prefix
+  jc .do_rtcw
+
   ; Unknown command
   mov si, msg_unknown
+  call print_string
+  ret
+
+.do_rtcw:
+  ; Usage: rtcw <reg_hex> <val_hex>
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .rtcw_help
+  call parse_hex_byte
+  jc .rtcw_help
+  push ax ; register
+
+  inc si
+  mov al, [si]
+  cmp al, ' '
+  jne .rtcw_help_pop
+  inc si
+  call parse_hex_byte
+  jc .rtcw_help_pop
+  
+  mov bl, al ; value
+  pop ax     ; register
+  out 0x70, al
+  mov al, bl
+  out 0x71, al
+  
+  mov si, msg_rtc_ok
+  call print_string
+  ret
+
+.rtcw_help_pop:
+  pop ax
+.rtcw_help:
+  mov si, msg_rtcw_help
   call print_string
   ret
 
@@ -2262,7 +2302,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.36 (Day 60: RTC Raw Dump)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, rtc, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>, gdt, cmos", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, rtc, rtcw <reg> <val>, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>, gdt, cmos", 13, 10, 0
 msg_gdt_info db "GDT Base: 0x", 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
@@ -2339,6 +2379,8 @@ msg_kb db " KB", 13, 10, 0
 msg_cmos_base db "CMOS Base Memory: ", 0
 msg_cmos_ext db "CMOS Extended Memory: ", 0
 msg_rtc_header db "RTC (00-09): ", 0
+msg_rtc_ok db "RTC updated.", 13, 10, 0
+msg_rtcw_help db "Usage: rtcw <reg_hex> <val_hex>", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
 msg_feat_fpu db "FPU ", 0
@@ -2427,6 +2469,7 @@ cmd_setmode db "setmode ", 0
 cmd_gdt db "gdt", 0
 cmd_cmos db "cmos", 0
 cmd_rtc db "rtc", 0
+cmd_rtcw db "rtcw ", 0
 cmd_poweroff db "poweroff", 0
 
 ; Buffer
