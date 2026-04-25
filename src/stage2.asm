@@ -532,6 +532,11 @@ process_command:
   call strcmp
   jc .do_irq
 
+  ; Command: 'unmask' (unmask IRQ)
+  mov di, cmd_unmask
+  call strcmp_prefix
+  jc .do_unmask
+
   ; Command: 'rtcw' (write RTC register)
   mov di, cmd_rtcw
   call strcmp_prefix
@@ -652,6 +657,53 @@ process_command:
   pop ax
   call print_hex_byte
   mov si, newline
+  call print_string
+  ret
+
+.do_unmask:
+  ; Usage: unmask <irq_hex>
+  add si, 7
+  mov al, [si]
+  test al, al
+  jz .unmask_help
+  call parse_hex_byte
+  jc .unmask_help
+  
+  cmp al, 15
+  ja .unmask_help
+  
+  ; AL = IRQ number (0-15)
+  mov cl, al
+  cmp cl, 8
+  jl .unmask_master
+  
+  ; Slave PIC (8-15)
+  sub cl, 8
+  mov bl, 1
+  shl bl, cl
+  not bl ; mask to UNMASK (0 = enabled)
+  
+  in al, 0xA1
+  and al, bl
+  out 0xA1, al
+  jmp .unmask_done
+
+.unmask_master:
+  mov bl, 1
+  shl bl, cl
+  not bl
+  
+  in al, 0x21
+  and al, bl
+  out 0x21, al
+
+.unmask_done:
+  mov si, msg_unmask_ok
+  call print_string
+  ret
+
+.unmask_help:
+  mov si, msg_unmask_help
   call print_string
   ret
 
@@ -2407,6 +2459,8 @@ msg_cmos_ext db "CMOS Extended Memory: ", 0
 msg_rtc_header db "RTC (00-09): ", 0
 msg_irq_header db "IRQ Masks (Slave:Master): 0x", 0
 msg_rtc_ok db "RTC updated.", 13, 10, 0
+msg_unmask_ok db "IRQ unmasked.", 13, 10, 0
+msg_unmask_help db "Usage: unmask <irq_hex_0_F>", 13, 10, 0
 msg_rtcw_help db "Usage: rtcw <reg_hex> <val_hex>", 13, 10, 0
 msg_mmap_header db "BaseLow  Length   Type", 13, 10, 0
 msg_cpu_vendor db "CPU Vendor: ", 0
@@ -2497,6 +2551,7 @@ cmd_gdt db "gdt", 0
 cmd_cmos db "cmos", 0
 cmd_rtc db "rtc", 0
 cmd_irq db "irq", 0
+cmd_unmask db "unmask ", 0
 cmd_rtcw db "rtcw ", 0
 cmd_poweroff db "poweroff", 0
 
