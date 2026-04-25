@@ -1,5 +1,5 @@
 Commit count: 1
-Hash: 5ebb72001abd266219977c1ff66d386e1177a723
-Changed: src/stage2.asm (irq command), daily/2026-04-24.md
-Next: RTC IRQ 8 handler
+Hash: c496770923cf576e29f0f1fc24ab3f8c2c8f783b
+Changed: src/stage2.asm (unmask command), daily/2026-04-25.md
+Next: RTC IRQ handler (IRQ 8)
 Push status: Success
