@@ -532,6 +532,11 @@ process_command:
   call strcmp
   jc .do_irq
 
+  ; Command: 'mask' (mask IRQ)
+  mov di, cmd_mask
+  call strcmp_prefix
+  jc .do_mask
+
   ; Command: 'unmask' (unmask IRQ)
   mov di, cmd_unmask
   call strcmp_prefix
@@ -657,6 +662,51 @@ process_command:
   pop ax
   call print_hex_byte
   mov si, newline
+  call print_string
+  ret
+
+.do_mask:
+  ; Usage: mask <irq_hex>
+  add si, 5
+  mov al, [si]
+  test al, al
+  jz .mask_help
+  call parse_hex_byte
+  jc .mask_help
+  
+  cmp al, 15
+  ja .mask_help
+  
+  ; AL = IRQ number (0-15)
+  mov cl, al
+  cmp cl, 8
+  jl .mask_master
+  
+  ; Slave PIC (8-15)
+  sub cl, 8
+  mov bl, 1
+  shl bl, cl
+  
+  in al, 0xA1
+  or al, bl
+  out 0xA1, al
+  jmp .mask_done
+
+.mask_master:
+  mov bl, 1
+  shl bl, cl
+  
+  in al, 0x21
+  or al, bl
+  out 0x21, al
+
+.mask_done:
+  mov si, msg_mask_ok
+  call print_string
+  ret
+
+.mask_help:
+  mov si, msg_mask_help
   call print_string
   ret
 
@@ -2380,7 +2430,7 @@ print_string:
 
 msg db "os-2week: stage2 ok", 13, 10, 0
 msg_ver db "os-2week v0.1.37 (Day 62: PIC/IRQ Probe)", 13, 10, 0
-msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, rtc, irq, rtcw <reg> <val>, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>, gdt, cmos", 13, 10, 0
+msg_help db "Available: ver, cls, clear, reboot, lba, chs, help, echo <text>, mmap, cpu, feat, xfeat, uptime, time, date, rtc, irq, mask <irq>, unmask <irq>, rtcw <reg> <val>, color <0-F>, dump <addr>, peek <addr>, poke <addr> <val>, edit <addr> <str>, pci, lspci, io <r/w> <port> [val], ior <port>, iow <port> <val>, mem, free, beep, exit, halt, panic, rand, ls, ps, kill <pid>, cat <lba>, hex <lba>, read <lba>, write <lba>, fill <val>, seek <lba>, whoami, su, sudo, df, du, touch, rm, pwd, mkdir, rmdir, cd, cp, mv, history, fat, uname, sleep <ticks>, mdelay <ms>, poweroff, kbd, vga, setmode <mode>, gdt, cmos", 13, 10, 0
 msg_gdt_info db "GDT Base: 0x", 0
 msg_lba_ok db "INT 13h Extensions (LBA) detected on Drive 0x80.", 13, 10, 0
 msg_lba_fail db "INT 13h Extensions NOT supported on Drive 0x80.", 13, 10, 0
@@ -2459,6 +2509,8 @@ msg_cmos_ext db "CMOS Extended Memory: ", 0
 msg_rtc_header db "RTC (00-09): ", 0
 msg_irq_header db "IRQ Masks (Slave:Master): 0x", 0
 msg_rtc_ok db "RTC updated.", 13, 10, 0
+msg_mask_ok db "IRQ masked.", 13, 10, 0
+msg_mask_help db "Usage: mask <irq_hex_0_F>", 13, 10, 0
 msg_unmask_ok db "IRQ unmasked.", 13, 10, 0
 msg_unmask_help db "Usage: unmask <irq_hex_0_F>", 13, 10, 0
 msg_rtcw_help db "Usage: rtcw <reg_hex> <val_hex>", 13, 10, 0
@@ -2551,6 +2603,7 @@ cmd_gdt db "gdt", 0
 cmd_cmos db "cmos", 0
 cmd_rtc db "rtc", 0
 cmd_irq db "irq", 0
+cmd_mask db "mask ", 0
 cmd_unmask db "unmask ", 0
 cmd_rtcw db "rtcw ", 0
 cmd_poweroff db "poweroff", 0
