@@ -71,10 +71,11 @@ char scancode_to_ascii[] = {
 
 void kernel_main() {
     clear_screen();
-    const char* message = "OS-2WEEK KERNEL v0.0.3";
+    const char* message = "OS-2WEEK KERNEL v0.0.4";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Keyboard ASCII mapping active.", 0x07, 0, 1);
-    print_string("> ", 0x0F, 0, 3);
+    print_string("Commands: (c) clear screen", 0x07, 0, 2);
+    print_string("> ", 0x0F, 0, 4);
     
     int cursor_x = 2;
     unsigned char last_scancode = 0;
@@ -84,8 +85,15 @@ void kernel_main() {
         if (scancode != last_scancode) {
             if (!(scancode & 0x80)) { // Key press
                 char c = scancode_to_ascii[scancode];
-                if (c > 0) {
-                    print_char(c, 0x0A, cursor_x++, 3);
+                if (c == 'c') {
+                    clear_screen();
+                    print_string(message, 0x0B, 0, 0);
+                    print_string("Status: Keyboard ASCII mapping active.", 0x07, 0, 1);
+                    print_string("Commands: (c) clear screen", 0x07, 0, 2);
+                    print_string("> ", 0x0F, 0, 4);
+                    cursor_x = 2;
+                } else if (c > 0) {
+                    print_char(c, 0x0A, cursor_x++, 4);
                     if (cursor_x >= 79) cursor_x = 2;
                 }
             }
