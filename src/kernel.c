@@ -69,15 +69,30 @@ char scancode_to_ascii[] = {
     0,	/* All other keys are undefined */
 };
 
+char command_buffer[64];
+int buffer_idx = 0;
+
+void reset_prompt(const char* msg, int* x, int* y) {
+    *y = 4;
+    *x = 2;
+    buffer_idx = 0;
+    for(int i=0; i<64; i++) command_buffer[i] = 0;
+    print_string("> ", 0x0F, 0, *y);
+    // Clear the rest of the line
+    for(int i=2; i<80; i++) print_char(' ', 0x07, i, *y);
+}
+
 void kernel_main() {
     clear_screen();
-    const char* message = "OS-2WEEK KERNEL v0.0.4";
+    const char* message = "OS-2WEEK KERNEL v0.0.5";
     print_string(message, 0x0B, 0, 0);
-    print_string("Status: Keyboard ASCII mapping active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear screen", 0x07, 0, 2);
-    print_string("> ", 0x0F, 0, 4);
+    print_string("Status: Command buffer active.", 0x07, 0, 1);
+    print_string("Commands: (c) clear, (h) help", 0x07, 0, 2);
     
     int cursor_x = 2;
+    int cursor_y = 4;
+    reset_prompt(message, &cursor_x, &cursor_y);
+    
     unsigned char last_scancode = 0;
 
     while(1) {
@@ -85,19 +100,41 @@ void kernel_main() {
         if (scancode != last_scancode) {
             if (!(scancode & 0x80)) { // Key press
                 char c = scancode_to_ascii[scancode];
-                if (c == 'c') {
-                    clear_screen();
-                    print_string(message, 0x0B, 0, 0);
-                    print_string("Status: Keyboard ASCII mapping active.", 0x07, 0, 1);
-                    print_string("Commands: (c) clear screen", 0x07, 0, 2);
-                    print_string("> ", 0x0F, 0, 4);
-                    cursor_x = 2;
-                } else if (c > 0) {
-                    print_char(c, 0x0A, cursor_x++, 4);
-                    if (cursor_x >= 79) cursor_x = 2;
+                if (c == '\n') {
+                    // Simple command handler
+                    cursor_y++;
+                    if (command_buffer[0] == 'c' && command_buffer[1] == '\0') {
+                        clear_screen();
+                        print_string(message, 0x0B, 0, 0);
+                        print_string("Status: Command buffer active.", 0x07, 0, 1);
+                        print_string("Commands: (c) clear, (h) help", 0x07, 0, 2);
+                        cursor_y = 4;
+                    } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
+                        print_string("HELP: c=clear, h=help. Type and press Enter.", 0x0E, 0, cursor_y++);
+                    } else if (buffer_idx > 0) {
+                        print_string("Unknown command.", 0x0C, 0, cursor_y++);
+                    }
+                    
+                    if (cursor_y >= 24) {
+                        clear_screen();
+                        cursor_y = 4;
+                    }
+                    reset_prompt(message, &cursor_x, &cursor_y);
+                } else if (c == '\b') {
+                    if (buffer_idx > 0) {
+                        buffer_idx--;
+                        command_buffer[buffer_idx] = 0;
+                        cursor_x--;
+                        print_char(' ', 0x07, cursor_x, cursor_y);
+                    }
+                } else if (c > 0 && buffer_idx < 63) {
+                    command_buffer[buffer_idx++] = c;
+                    command_buffer[buffer_idx] = '\0';
+                    print_char(c, 0x0A, cursor_x++, cursor_y);
                 }
             }
             last_scancode = scancode;
         }
     }
 }
+

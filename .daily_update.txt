@@ -1,5 +1,13 @@
+Daily OS Project Update - 2026-04-30
+-----------------------------------
 Commit Count: 1
-Hashes: edaf1819dce6c9fc344f3d81e70bd1e8a3aa5d32
-What Changed: Added clear_screen() function and refined kernel boot UI in src/kernel.c.
-What's Next: Implement scancode-to-ASCII lookup table.
+Latest Hash: 3ada68ec6b2bd43e6f2a9e45cbca2cabbadd121c
+Changes:
+- Implemented 'c' key shortcut to clear the screen in the kernel.
+- Added version bump to v0.0.4.
+- Updated daily log (2026-04-30.md).
+
+Next Steps:
+- Implement Enter key handling and a command buffer.
+
 Push Status: Success
