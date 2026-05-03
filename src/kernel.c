@@ -84,10 +84,10 @@ void reset_prompt(const char* msg, int* x, int* y) {
 
 void kernel_main() {
     clear_screen();
-    const char* message = "OS-2WEEK KERNEL v0.0.6";
+    const char* message = "OS-2WEEK KERNEL v0.0.7";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -107,12 +107,14 @@ void kernel_main() {
                         clear_screen();
                         print_string(message, 0x0B, 0, 0);
                         print_string("Status: Command buffer active.", 0x07, 0, 1);
-                        print_string("Commands: (c) clear, (h) help, (v) version", 0x07, 0, 2);
+                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time", 0x07, 0, 2);
                         cursor_y = 4;
                     } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                        print_string("HELP: c=clear, h=help, v=version. Type and press Enter.", 0x0E, 0, cursor_y++);
+                        print_string("HELP: c=clear, h=help, v=version, t=time. Type and press Enter.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
+                    } else if (command_buffer[0] == 't' && command_buffer[1] == '\0') {
+                        print_string("TIME: System RTC reading not yet implemented.", 0x0D, 0, cursor_y++);
                     } else if (buffer_idx > 0) {
                         print_string("Unknown command.", 0x0C, 0, cursor_y++);
                     }
