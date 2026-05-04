@@ -87,7 +87,7 @@ void kernel_main() {
     const char* message = "OS-2WEEK KERNEL v0.0.7";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version, (t) time", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -107,14 +107,27 @@ void kernel_main() {
                         clear_screen();
                         print_string(message, 0x0B, 0, 0);
                         print_string("Status: Command buffer active.", 0x07, 0, 1);
-                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time", 0x07, 0, 2);
+                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek", 0x07, 0, 2);
                         cursor_y = 4;
                     } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                        print_string("HELP: c=clear, h=help, v=version, t=time. Type and press Enter.", 0x0E, 0, cursor_y++);
+                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
                     } else if (command_buffer[0] == 't' && command_buffer[1] == '\0') {
                         print_string("TIME: System RTC reading not yet implemented.", 0x0D, 0, cursor_y++);
+                    } else if (command_buffer[0] == 'p' && command_buffer[1] == '\0') {
+                        unsigned char* kernel_start = (unsigned char*)0x1000;
+                        print_string("PEEK: First 4 bytes of 0x1000 (kernel load address):", 0x0D, 0, cursor_y++);
+                        for(int i=0; i<4; i++) {
+                            char hex[3];
+                            unsigned char byte = kernel_start[i];
+                            const char* hex_chars = "0123456789ABCDEF";
+                            hex[0] = hex_chars[(byte >> 4) & 0x0F];
+                            hex[1] = hex_chars[byte & 0x0F];
+                            hex[2] = '\0';
+                            print_string(hex, 0x0F, i*3, cursor_y);
+                        }
+                        cursor_y++;
                     } else if (buffer_idx > 0) {
                         print_string("Unknown command.", 0x0C, 0, cursor_y++);
                     }
