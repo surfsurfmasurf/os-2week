@@ -1,5 +1,7 @@
 /* src/kernel.c - Basic C Kernel with simple keyboard echo */
 
+#include <stdint.h>
+
 void print_char(char c, int color, int x, int y) {
     char* video_memory = (char*)0xB8000;
     int offset = (y * 80 + x) * 2;
@@ -27,6 +29,15 @@ unsigned char inb(unsigned short port) {
     unsigned char result;
     __asm__ volatile("inb %1, %0" : "=a"(result) : "Nd"(port));
     return result;
+}
+
+void outb(unsigned short port, unsigned char data) {
+    __asm__ volatile("outb %0, %1" : : "a"(data), "Nd"(port));
+}
+
+unsigned char read_rtc(unsigned char reg) {
+    outb(0x70, reg);
+    return inb(0x71);
 }
 
 // Simple US QWERTY Scancode to ASCII table
@@ -84,7 +95,7 @@ void reset_prompt(const char* msg, int* x, int* y) {
 
 void kernel_main() {
     clear_screen();
-    const char* message = "OS-2WEEK KERNEL v0.0.8";
+    const char* message = "OS-2WEEK KERNEL v0.0.9";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
     print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (x) exit, (r) reboot", 0x07, 0, 2);
@@ -115,10 +126,30 @@ void kernel_main() {
                         print_string(message, 0x0B, 0, cursor_y++);
                     } else if (command_buffer[0] == 'r' && command_buffer[1] == '\0') {
                         print_string("REBOOT: Sending 0xFE to port 0x64...", 0x0E, 0, cursor_y++);
-                        // CPU reset via Keyboard Controller
-                        __asm__ volatile("outb %%al, %%dx" : : "a"(0xFE), "d"(0x64));
+                        outb(0x64, 0xFE);
                     } else if (command_buffer[0] == 't' && command_buffer[1] == '\0') {
-                        print_string("TIME: System RTC reading not yet implemented.", 0x0D, 0, cursor_y++);
+                        unsigned char sec = read_rtc(0x00);
+                        unsigned char min = read_rtc(0x02);
+                        unsigned char hour = read_rtc(0x04);
+                        
+                        // BCD to binary conversion
+                        sec = (sec & 0x0F) + ((sec / 16) * 10);
+                        min = (min & 0x0F) + ((min / 16) * 10);
+                        hour = (hour & 0x0F) + ((hour / 16) * 10);
+
+                        char time_str[10];
+                        time_str[0] = (hour / 10) + '0';
+                        time_str[1] = (hour % 10) + '0';
+                        time_str[2] = ':';
+                        time_str[3] = (min / 10) + '0';
+                        time_str[4] = (min % 10) + '0';
+                        time_str[5] = ':';
+                        time_str[6] = (sec / 10) + '0';
+                        time_str[7] = (sec % 10) + '0';
+                        time_str[8] = '\0';
+
+                        print_string("TIME (UTC): ", 0x0D, 0, cursor_y);
+                        print_string(time_str, 0x0D, 12, cursor_y++);
                     } else if (command_buffer[0] == 'x' && command_buffer[1] == '\0') {
                         print_string("EXIT: Halting CPU. Goodbye.", 0x0C, 0, cursor_y++);
                         __asm__ volatile("hlt");
@@ -161,4 +192,5 @@ void kernel_main() {
         }
     }
 }
+
 
