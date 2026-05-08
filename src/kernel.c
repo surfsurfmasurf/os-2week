@@ -17,6 +17,13 @@ void print_string(const char* str, int color, int x, int y) {
     }
 }
 
+void print_hex(uint32_t val, int color, int x, int y) {
+    const char* hex_chars = "0123456789ABCDEF";
+    for (int i = 7; i >= 0; i--) {
+        print_char(hex_chars[(val >> (i * 4)) & 0xF], color, x + (7 - i), y);
+    }
+}
+
 void clear_screen() {
     for (int y = 0; y < 25; y++) {
         for (int x = 0; x < 80; x++) {
@@ -98,7 +105,7 @@ void kernel_main() {
     const char* message = "OS-2WEEK KERNEL v0.0.9";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (x) exit, (r) reboot", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (x) exit, (r) reboot", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -118,12 +125,28 @@ void kernel_main() {
                         clear_screen();
                         print_string(message, 0x0B, 0, 0);
                         print_string("Status: Command buffer active.", 0x07, 0, 1);
-                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (x) exit, (r) reboot", 0x07, 0, 2);
+                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (x) exit, (r) reboot", 0x07, 0, 2);
                         cursor_y = 4;
                     } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
+                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
+                    } else if (command_buffer[0] == 'm' && command_buffer[1] == '\0') {
+                        print_string("MEM: Scanning for top of physical RAM (basic check)...", 0x0D, 0, cursor_y++);
+                        uint32_t* mem_ptr = (uint32_t*)0x100000; // Start at 1MB
+                        uint32_t test_val = 0xDEADBEEF;
+                        while ((uint32_t)mem_ptr < 0xFFFFFFF0) {
+                            uint32_t old_val = *mem_ptr;
+                            *mem_ptr = test_val;
+                            if (*mem_ptr != test_val) {
+                                *mem_ptr = old_val;
+                                break;
+                            }
+                            *mem_ptr = old_val;
+                            mem_ptr += 256 * 1024; // Check every 1MB (256k uint32)
+                        }
+                        print_string("Estimated RAM: ", 0x0D, 0, cursor_y);
+                        print_hex((uint32_t)mem_ptr, 0x0F, 15, cursor_y++);
                     } else if (command_buffer[0] == 'r' && command_buffer[1] == '\0') {
                         print_string("REBOOT: Sending 0xFE to port 0x64...", 0x0E, 0, cursor_y++);
                         outb(0x64, 0xFE);
