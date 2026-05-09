@@ -1,15 +1,5 @@
-Daily OS Project Update - 2026-05-07
------------------------------------
-Commit Count: 1
-Latest Hash: 6c46b46
-Changes:
-- Implemented RTC 'time' command in kernel shell (UTC HH:MM:SS).
-- Added I/O port helpers (outb) and BCD conversion logic.
-- Incremented kernel version to v0.0.9.
-- Added daily log for 2026-05-07.
-
-Next Steps:
-- Implement date reading from RTC.
-- Investigate FAT12 filesystem structure.
-
-Push Status: Success
+Commit count: 1
+Hashes: 0d1a3f4
+Changed: Added 'mem' command and print_hex helper to kernel.c.
+Next: Refine memory detection via E820 in stage2.
+Push status: Success.

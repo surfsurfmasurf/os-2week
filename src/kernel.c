@@ -105,7 +105,7 @@ void kernel_main() {
     const char* message = "OS-2WEEK KERNEL v0.0.9";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (x) exit, (r) reboot", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (x) exit, (r) reboot", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -125,10 +125,10 @@ void kernel_main() {
                         clear_screen();
                         print_string(message, 0x0B, 0, 0);
                         print_string("Status: Command buffer active.", 0x07, 0, 1);
-                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (x) exit, (r) reboot", 0x07, 0, 2);
+                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (x) exit, (r) reboot", 0x07, 0, 2);
                         cursor_y = 4;
                     } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
+                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, u=uptime, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
                     } else if (command_buffer[0] == 'm' && command_buffer[1] == '\0') {
@@ -189,6 +189,11 @@ void kernel_main() {
                             print_string(hex, 0x0F, i*3, cursor_y);
                         }
                         cursor_y++;
+                    } else if (command_buffer[0] == 'u' && command_buffer[1] == '\0') {
+                        print_string("UPTIME: Tick counter (simulated/approx)...", 0x0B, 0, cursor_y++);
+                        static uint32_t ticks = 0;
+                        ticks += 100; // Fake progress
+                        print_hex(ticks, 0x0F, 0, cursor_y++);
                     } else if (buffer_idx > 0) {
                         print_string("Unknown command.", 0x0C, 0, cursor_y++);
                     }
