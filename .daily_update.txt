@@ -1,5 +1,5 @@
-Commit count: 1
-Hashes: 0d1a3f4
-Changed: Added 'mem' command and print_hex helper to kernel.c.
-Next: Refine memory detection via E820 in stage2.
-Push status: Success.
+Commit Count: 1
+Hashes: 2d77f1d
+What Changed: Added 'uptime' command to the kernel shell in src/kernel.c.
+What's Next: Investigate implementing a real PIT (Programmable Interval Timer) for accurate uptime.
+Push Status: Success
