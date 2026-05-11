@@ -105,7 +105,7 @@ void kernel_main() {
     const char* message = "OS-2WEEK KERNEL v0.0.9";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (x) exit, (r) reboot", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -122,20 +122,32 @@ void kernel_main() {
                 if (c == '\n') {
                     // Simple command handler
                     cursor_y++;
-                    if (command_buffer[0] == 'c' && command_buffer[1] == '\0') {
-                        clear_screen();
-                        print_string(message, 0x0B, 0, 0);
-                        print_string("Status: Command buffer active.", 0x07, 0, 1);
-                        print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (x) exit, (r) reboot", 0x07, 0, 2);
-                        cursor_y = 4;
-                    } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                        print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, u=uptime, s=screen, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
+                        if (command_buffer[0] == 'c' && command_buffer[1] == '\0') {
+                            clear_screen();
+                            print_string(message, 0x0B, 0, 0);
+                            print_string("Status: Command buffer active.", 0x07, 0, 1);
+                            print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot", 0x07, 0, 2);
+                            cursor_y = 4;
+                        } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
+                            print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, u=uptime, s=screen, b=beep, q=quiet, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
                     } else if (command_buffer[0] == 's' && command_buffer[1] == '\0') {
                         text_color++;
                         if (text_color > 0x0F) text_color = 0x01;
                         print_string("SCREEN: Text color cycled.", text_color, 0, cursor_y++);
+                    } else if (command_buffer[0] == 'b' && command_buffer[1] == '\0') {
+                        print_string("BEEP: Playing 440Hz tone via PC Speaker...", 0x0E, 0, cursor_y++);
+                        uint16_t div = 1193180 / 440;
+                        outb(0x43, 0xB6);
+                        outb(0x42, (uint8_t)(div & 0xFF));
+                        outb(0x42, (uint8_t)((div >> 8) & 0xFF));
+                        uint8_t tmp = inb(0x61);
+                        if (tmp != (tmp | 3)) outb(0x61, tmp | 3);
+                    } else if (command_buffer[0] == 'q' && command_buffer[1] == '\0') {
+                        print_string("QUIET: Turning off PC Speaker.", 0x0E, 0, cursor_y++);
+                        uint8_t tmp = inb(0x61) & 0xFC;
+                        outb(0x61, tmp);
                     } else if (command_buffer[0] == 'm' && command_buffer[1] == '\0') {
                         print_string("MEM: Scanning for top of physical RAM (basic check)...", 0x0D, 0, cursor_y++);
                         uint32_t* mem_ptr = (uint32_t*)0x100000; // Start at 1MB
