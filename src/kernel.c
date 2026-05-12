@@ -105,7 +105,7 @@ void kernel_main() {
     const char* message = "OS-2WEEK KERNEL v0.0.9";
     print_string(message, 0x0B, 0, 0);
     print_string("Status: Command buffer active.", 0x07, 0, 1);
-    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot", 0x07, 0, 2);
+    print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot, (i) info", 0x07, 0, 2);
     
     int cursor_x = 2;
     int cursor_y = 4;
@@ -126,12 +126,15 @@ void kernel_main() {
                             clear_screen();
                             print_string(message, 0x0B, 0, 0);
                             print_string("Status: Command buffer active.", 0x07, 0, 1);
-                            print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot", 0x07, 0, 2);
+                            print_string("Commands: (c) clear, (h) help, (v) version, (t) time, (p) peek, (m) mem, (u) uptime, (s) screen, (b) beep, (q) quiet, (x) exit, (r) reboot, (i) info", 0x07, 0, 2);
                             cursor_y = 4;
                         } else if (command_buffer[0] == 'h' && command_buffer[1] == '\0') {
-                            print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, u=uptime, s=screen, b=beep, q=quiet, x=exit, r=reboot.", 0x0E, 0, cursor_y++);
+                            print_string("HELP: c=clear, h=help, v=version, t=time, p=peek, m=mem, u=uptime, s=screen, b=beep, q=quiet, x=exit, r=reboot, i=info.", 0x0E, 0, cursor_y++);
                     } else if (command_buffer[0] == 'v' && command_buffer[1] == '\0') {
                         print_string(message, 0x0B, 0, cursor_y++);
+                    } else if (command_buffer[0] == 'i' && command_buffer[1] == '\0') {
+                        print_string("INFO: 32-bit Protected Mode Kernel.", 0x0F, 0, cursor_y++);
+                        print_string("Compiler: GCC, Language: C/ASM.", 0x0F, 0, cursor_y++);
                     } else if (command_buffer[0] == 's' && command_buffer[1] == '\0') {
                         text_color++;
                         if (text_color > 0x0F) text_color = 0x01;
