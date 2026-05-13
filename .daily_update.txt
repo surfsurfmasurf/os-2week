@@ -1,5 +1,5 @@
-Commit Count: 1
-Hashes: 2d77f1d
-What Changed: Added 'uptime' command to the kernel shell in src/kernel.c.
-What's Next: Investigate implementing a real PIT (Programmable Interval Timer) for accurate uptime.
-Push Status: Success
+Commit count: 1
+Hashes: 39791e61f40904fe8612b1a1215996c6cb9f4896
+What changed: Added 'info' command to kernel (src/kernel.c) and created daily log (daily/2026-05-12.md).
+What's next: File system skeleton or ramdisk.
+Push status: Success.
